@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+target-track/node_modules/
+
+# Compiled outputs
+dist/
+target-track/dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Angular cache
+.angular/
+target-track/.angular/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+.gemini/

@@ -1,0 +1,57 @@
+import { GeofenceZone } from '../models/geofence.model';
+
+export const MOCK_GEOFENCES: GeofenceZone[] = [
+  {
+    id: 'GEO-001',
+    name: 'Mumbai Port Exclusion Zone',
+    color: '#f44336',
+    shape: 'circle',
+    center: [18.9220, 72.8347],
+    radius: 3000,
+    description: 'High-security zone around Mumbai port; unauthorized entry flagged',
+    createdBy: 'USR-001',
+    createdAt: new Date(Date.now() - 30 * 24 * 3600000).toISOString(),
+    active: true,
+  },
+  {
+    id: 'GEO-002',
+    name: 'Delhi IGI Airport Watch Zone',
+    color: '#ff9800',
+    shape: 'circle',
+    center: [28.5562, 77.1000],
+    radius: 5000,
+    description: 'Watch zone around Indira Gandhi International Airport',
+    createdBy: 'USR-001',
+    createdAt: new Date(Date.now() - 20 * 24 * 3600000).toISOString(),
+    active: true,
+  },
+  {
+    id: 'GEO-003',
+    name: 'Wagah Border Buffer Zone',
+    color: '#9c27b0',
+    shape: 'circle',
+    center: [31.6049, 74.5726],
+    radius: 10000,
+    description: 'Buffer zone near Wagah border crossing; cross-border movement watch',
+    createdBy: 'USR-001',
+    createdAt: new Date(Date.now() - 15 * 24 * 3600000).toISOString(),
+    active: true,
+  },
+  {
+    id: 'GEO-004',
+    name: 'Mangaluru Coastal Watch',
+    color: '#2196f3',
+    shape: 'polygon',
+    coordinates: [
+      [12.9500, 74.8200],
+      [12.9500, 74.9000],
+      [12.8700, 74.9000],
+      [12.8700, 74.8200],
+    ],
+    description: 'Coastal watch polygon for smuggling route monitoring',
+    createdBy: 'USR-001',
+    createdAt: new Date(Date.now() - 10 * 24 * 3600000).toISOString(),
+    active: true,
+  },
+];
+

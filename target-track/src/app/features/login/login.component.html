@@ -1,0 +1,163 @@
+<div class="login-page" [ngClass]="{ 'theme-light': !themeService.isDark(), 'theme-dark': themeService.isDark() }">
+
+  <!-- Animated classified overlay -->
+  <div class="classified-overlay" aria-hidden="true">
+    <span class="classified-text">CLASSIFIED</span>
+    <span class="classified-text">RESTRICTED</span>
+    <span class="classified-text">CONFIDENTIAL</span>
+    <span class="classified-text">LAW ENFORCEMENT</span>
+    <span class="classified-text">SENSITIVE</span>
+  </div>
+
+  <!-- Theme toggle top-right -->
+  <button
+    mat-icon-button
+    class="theme-toggle-btn"
+    (click)="toggleTheme()"
+    [matTooltip]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+    aria-label="Toggle theme"
+  >
+    @if (themeService.isDark()) {
+      <mat-icon>light_mode</mat-icon>
+    } @else {
+      <mat-icon>dark_mode</mat-icon>
+    }
+  </button>
+
+  <!-- Main login card -->
+  <div class="login-container">
+    <mat-card class="login-card" appearance="outlined">
+      <mat-card-content>
+
+        <!-- Logo / Branding -->
+        <div class="brand-header">
+          <div class="logo-icon">
+            <mat-icon class="shield-icon">security</mat-icon>
+          </div>
+          <div class="brand-text">
+            <h1 class="app-title">TargetTrack</h1>
+            <p class="app-subtitle">Intelligence Operations Dashboard</p>
+          </div>
+        </div>
+
+        <!-- Confidential Warning Banner -->
+        <div class="confidential-banner" role="alert">
+          <mat-icon class="warning-icon">gpp_bad</mat-icon>
+          <span>CONFIDENTIAL SYSTEM — AUTHORISED ACCESS ONLY</span>
+          <mat-icon class="warning-icon">gpp_bad</mat-icon>
+        </div>
+
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" autocomplete="off">
+
+          <!-- Username -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Badge / Username</mat-label>
+            <mat-icon matPrefix class="field-prefix-icon">badge</mat-icon>
+            <input
+              matInput
+              formControlName="username"
+              placeholder="Enter your badge ID"
+              autocomplete="username"
+              [attr.aria-describedby]="loginForm.controls.username.invalid && loginForm.controls.username.touched ? 'username-error' : null"
+            />
+            @if (loginForm.controls.username.invalid && loginForm.controls.username.touched) {
+              <mat-error id="username-error">Username is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Password -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Access Code</mat-label>
+            <mat-icon matPrefix class="field-prefix-icon">lock</mat-icon>
+            <input
+              matInput
+              formControlName="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              placeholder="Enter access code"
+              autocomplete="current-password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword()) {
+                <mat-icon>visibility_off</mat-icon>
+              } @else {
+                <mat-icon>visibility</mat-icon>
+              }
+            </button>
+            @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
+              <mat-error>Access code is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Error Message -->
+          @if (loginError()) {
+            <div class="error-banner" role="alert" aria-live="assertive">
+              <mat-icon>dangerous</mat-icon>
+              <span>{{ loginError() }}</span>
+            </div>
+          }
+
+          <!-- Submit Button -->
+          <button
+            mat-flat-button
+            class="login-btn full-width"
+            type="submit"
+            [disabled]="isLoading()"
+            aria-label="Authenticate and login"
+          >
+            <span class="btn-content">
+              @if (isLoading()) {
+                <mat-progress-spinner
+                  diameter="20"
+                  mode="indeterminate"
+                  class="btn-spinner"
+                ></mat-progress-spinner>
+                <span>AUTHENTICATING...</span>
+              } @else {
+                <mat-icon>fingerprint</mat-icon>
+                <span>AUTHENTICATE</span>
+              }
+            </span>
+          </button>
+
+        </form>
+
+        <!-- Quick Access Section -->
+        <div class="quick-access">
+          <p class="quick-access-label">
+            <mat-icon class="quick-icon">bolt</mat-icon>
+            Quick Demo Access
+          </p>
+          <div class="quick-chips">
+            @for (user of quickUsers; track user.username) {
+              <button
+                mat-stroked-button
+                class="quick-chip"
+                type="button"
+                (click)="fillQuickLogin(user.username)"
+                [matTooltip]="user.role"
+              >
+                <mat-icon>{{ user.icon }}</mat-icon>
+                {{ user.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Footer -->
+    <footer class="login-footer">
+      <mat-icon class="footer-icon">shield</mat-icon>
+      <span>Law Enforcement Use Only &bull; Unauthorized Access is a Federal Offence</span>
+    </footer>
+  </div>
+
+</div>

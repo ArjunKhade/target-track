@@ -1,0 +1,278 @@
+.target-list-page {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.compare-btn {
+  font-weight: 700;
+}
+
+/* Toolbar Card */
+.toolbar-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toolbar-top {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.search-field {
+  flex: 1;
+  margin-bottom: -16px;
+}
+
+.col-vis-btn {
+  height: 48px;
+  margin-top: -8px;
+  color: var(--text-primary);
+  --mdc-outlined-button-label-text-color: var(--text-primary);
+  --mdc-outlined-button-outline-color: var(--border-color);
+  mat-icon {
+    color: var(--text-secondary);
+  }
+}
+
+.filter-chips-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.chip-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.group-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.filter-pill {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+  &:hover {
+    background: var(--menu-hover);
+    color: var(--text-primary);
+  }
+}
+
+.filter-pill.active {
+  background: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+  border-color: #0284c7;
+  font-weight: 700;
+}
+
+body.theme-dark .filter-pill.active {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.clear-filters-btn {
+  font-size: 0.75rem;
+  height: 28px;
+  line-height: 28px;
+}
+
+/* Table Card */
+.table-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.roster-table {
+  width: 100%;
+  background: transparent;
+}
+
+.roster-row {
+  cursor: pointer;
+  transition: background-color 0.15s;
+  &:hover {
+    background-color: var(--menu-hover);
+  }
+}
+
+.critical-row {
+  border-left: 3px solid #ef4444 !important;
+}
+
+.checkbox-col {
+  width: 48px;
+}
+.avatar-col {
+  width: 56px;
+}
+.alias-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.critical-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulse-critical 1.5s infinite;
+  display: inline-block;
+}
+
+.alias-text {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.name-col {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.category-pill {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border-left: 3px solid;
+  background: var(--bg-app);
+}
+
+.org-col {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.time-col {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.location-col {
+  font-size: 0.85rem;
+}
+
+.loc-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-primary);
+}
+
+.pin-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #ef4444;
+}
+
+.actions-col {
+  width: 100px;
+  text-align: right;
+}
+
+.table-paginator {
+  background: transparent;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .target-list-page {
+    padding: 14px 10px;
+    gap: 14px;
+  }
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .page-title {
+    font-size: 1.35rem;
+  }
+  .toolbar-card {
+    padding: 12px;
+  }
+  .toolbar-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .search-field {
+    margin-bottom: 0;
+  }
+  .col-vis-btn {
+    margin-top: 0;
+    height: 42px;
+    width: 100%;
+  }
+  .filter-chips-section {
+    gap: 10px;
+    padding-top: 8px;
+  }
+  .roster-table {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 480px) {
+  .target-list-page {
+    padding: 10px 8px;
+    gap: 10px;
+  }
+  .compare-btn {
+    width: 100%;
+  }
+}

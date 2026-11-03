@@ -1,0 +1,88 @@
+import { AuditEntry } from '../models/audit.model';
+
+function hoursAgo(h: number, extraMinutes = 0): string {
+  return new Date(Date.now() - h * 3600000 - extraMinutes * 60000).toISOString();
+}
+
+export const MOCK_AUDIT_LOG: AuditEntry[] = [
+  {
+    id: 'AUD-001',
+    userId: 'USR-001',
+    username: 'admin',
+    action: 'LOGIN',
+    details: 'Admin logged in from web console',
+    timestamp: hoursAgo(2),
+    ipAddress: '192.168.1.10',
+  },
+  {
+    id: 'AUD-002',
+    userId: 'USR-001',
+    username: 'admin',
+    action: 'TARGET_VIEW',
+    targetId: 'TGT-001',
+    targetAlias: 'PHANTOM',
+    details: 'Viewed target profile and travel history',
+    timestamp: hoursAgo(1, 8),
+    ipAddress: '192.168.1.10',
+  },
+  {
+    id: 'AUD-003',
+    userId: 'USR-002',
+    username: 'officer',
+    action: 'LOGIN',
+    details: 'Officer logged in from field device',
+    timestamp: hoursAgo(3),
+    ipAddress: '10.0.0.45',
+  },
+  {
+    id: 'AUD-004',
+    userId: 'USR-002',
+    username: 'officer',
+    action: 'NOTE_ADD',
+    targetId: 'TGT-007',
+    targetAlias: 'SHADOW',
+    details: 'Added case note: "Associate confirmed meeting at Wagah border area"',
+    timestamp: hoursAgo(2, 5),
+    ipAddress: '10.0.0.45',
+  },
+  {
+    id: 'AUD-005',
+    userId: 'USR-001',
+    username: 'admin',
+    action: 'GEOFENCE_CREATE',
+    details: 'Created geofence "Mumbai Port Exclusion Zone"',
+    timestamp: hoursAgo(48),
+    ipAddress: '192.168.1.10',
+  },
+  {
+    id: 'AUD-006',
+    userId: 'USR-002',
+    username: 'officer',
+    action: 'EXPORT_PDF',
+    targetId: 'TGT-004',
+    targetAlias: 'SPECTRE',
+    details: 'Exported PDF report for SPECTRE',
+    timestamp: hoursAgo(5),
+    ipAddress: '10.0.0.45',
+  },
+  {
+    id: 'AUD-007',
+    userId: 'USR-003',
+    username: 'viewer',
+    action: 'LOGIN',
+    details: 'Viewer login from analysis terminal',
+    timestamp: hoursAgo(4),
+    ipAddress: '172.16.0.22',
+  },
+  {
+    id: 'AUD-008',
+    userId: 'USR-001',
+    username: 'admin',
+    action: 'TARGET_STATUS_CHANGE',
+    targetId: 'TGT-010',
+    targetAlias: 'MANTIS',
+    details: 'Status changed from "Active" to "Captured"',
+    timestamp: hoursAgo(72),
+    ipAddress: '192.168.1.10',
+  },
+];

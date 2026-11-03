@@ -1,0 +1,121 @@
+<div class="dashboard-shell">
+  <!-- Top Stat Cards (Animated Counters) -->
+  <section class="stat-cards-grid">
+    @for (card of statCards; track card.label; let i = $index) {
+      <mat-card
+        class="stat-card"
+        [class.critical-pulsing]="isCriticalCardPulsing(i)"
+      >
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrap" [style.background-color]="card.iconBg">
+            <mat-icon>{{ card.icon }}</mat-icon>
+          </div>
+          <div class="stat-text-wrap">
+            <div class="stat-number font-mono">{{ animatedValue(i) }}</div>
+            <div class="stat-label">{{ card.label }}</div>
+          </div>
+        </div>
+      </mat-card>
+    }
+  </section>
+
+  <!-- Row 2: Category Donut + Threat Distribution Bar -->
+  <div class="dashboard-row grid-two">
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar color="primary">pie_chart</mat-icon>
+        <mat-card-title>Target Roster by Category</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div echarts [options]="categoryChartOption()" class="chart-canvas"></div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar color="warn">bar_chart</mat-icon>
+        <mat-card-title>Threat Intensity Distribution</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div echarts [options]="threatChartOption()" class="chart-canvas"></div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Row 3: Sightings Timeline (14 Days) -->
+  <mat-card class="chart-card full-width-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar color="primary">show_chart</mat-icon>
+      <mat-card-title>Intelligence Sightings Frequency (Last 14 Days)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div echarts [options]="sightingsChartOption()" class="chart-canvas line-canvas"></div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Row 4: Top Cities + Mini Overview Map + Live Alerts Feed -->
+  <div class="dashboard-row grid-three">
+    <!-- Top Cities Horizontal Bar -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar color="primary">location_city</mat-icon>
+        <mat-card-title>Operational Hotspots (Top Cities)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div echarts [options]="topCitiesChartOption()" class="chart-canvas"></div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Mini Overview Map (Clustered Last-Known Locations) -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar color="primary">travel_explore</mat-icon>
+        <mat-card-title>Spatial Dispersion (All Targets)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="mini-map-content">
+        <div #miniMapContainer class="mini-map-canvas"></div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Live Alerts Feed -->
+    <mat-card class="alerts-feed-card">
+      <mat-card-header class="alerts-header">
+        <div class="alerts-title-wrap">
+          <mat-icon color="warn">notifications_active</mat-icon>
+          <span class="alerts-title">Tactical Live Alerts</span>
+          @if (unreadCount() > 0) {
+            <span class="unread-badge">{{ unreadCount() }}</span>
+          }
+        </div>
+        <button mat-button class="mark-all-btn" (click)="markAllRead()">
+          Mark All Read
+        </button>
+      </mat-card-header>
+      <mat-card-content class="alerts-list">
+        @for (alert of alerts().slice(0, 7); track alert.id) {
+          <div
+            class="alert-entry"
+            [class.unread]="!alert.read"
+            (click)="onAlertClick(alert)"
+          >
+            <div class="alert-icon-col">
+              <mat-icon [style.color]="severityColor(alert.severity)">
+                {{ severityIcon(alert.severity) }}
+              </mat-icon>
+            </div>
+            <div class="alert-content-col">
+              <div class="alert-msg">{{ alert.message }}</div>
+              <div class="alert-meta">
+                <span class="alias-pill" (click)="navigateToTarget(alert.targetId, $event)">
+                  {{ alert.targetAlias }}
+                </span>
+                <span class="alert-time">{{ alert.timestamp | timeAgo }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+

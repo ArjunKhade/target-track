@@ -1,0 +1,137 @@
+<mat-sidenav-container class="shell-container" autosize>
+  <!-- Sidenav -->
+  <mat-sidenav
+    #sidenav
+    [mode]="sidenavMode()"
+    [opened]="sidenavOpened()"
+    class="app-sidenav"
+  >
+    <!-- Brand Header -->
+    <div class="sidenav-brand">
+      <div class="brand-logo">
+        <mat-icon>security</mat-icon>
+      </div>
+      <div class="brand-info">
+        <div class="brand-title">{{ appName }}</div>
+        <div class="brand-subtitle">Intelligence Command</div>
+      </div>
+    </div>
+
+    <!-- Navigation List -->
+    <mat-nav-list class="sidenav-list">
+      @for (item of visibleNavItems(); track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="active-nav-item"
+          (click)="navigateTo(item.route)"
+          class="nav-link"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    <div class="sidenav-spacer"></div>
+
+    <!-- User Role Badge at Sidenav Bottom -->
+    <div class="sidenav-footer">
+      <div class="role-badge">
+        <mat-icon>badge</mat-icon>
+        <span>Role: <strong>{{ (currentUser()?.role | uppercase) || 'ANALYST' }}</strong></span>
+      </div>
+      <div class="security-level">CLEARANCE: SECRET // TACTICAL</div>
+    </div>
+  </mat-sidenav>
+
+  <!-- Main Sidenav Content -->
+  <mat-sidenav-content class="shell-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="app-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()" matTooltip="Toggle Navigation">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="toolbar-title">{{ pageTitle() }}</span>
+
+      <!-- Live Clock -->
+      <div class="live-clock font-mono">
+        <mat-icon class="clock-icon">schedule</mat-icon>
+        <span class="time-str">{{ formatTime(currentTime()) }}</span>
+        <span class="date-str">{{ formatDate(currentTime()) }}</span>
+      </div>
+
+      <div class="toolbar-spacer"></div>
+
+      <!-- Confidential Classification Banner Tag -->
+      <div class="confidential-tag">
+        <mat-icon>gpp_maybe</mat-icon>
+        <span>CONFIDENTIAL // LAW ENFORCEMENT</span>
+      </div>
+
+      <!-- Theme Switcher Button -->
+      <button mat-icon-button (click)="toggleTheme()" [matTooltip]="isDark() ? 'Light Mode' : 'Dark Command Center Mode'">
+        <mat-icon>{{ themeIcon() }}</mat-icon>
+      </button>
+
+      <!-- Notifications Bell Button -->
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="alertsMenu"
+        matTooltip="Operational Alerts"
+      >
+        <mat-icon [matBadge]="unreadCount()" [matBadgeHidden]="unreadCount() === 0" matBadgeColor="warn">
+          notifications
+        </mat-icon>
+      </button>
+      <mat-menu #alertsMenu="matMenu" class="alerts-dropdown">
+        <div class="alerts-dropdown-header" (click)="$event.stopPropagation()">
+          <strong>Tactical Alerts ({{ unreadCount() }} Unread)</strong>
+          <button mat-button color="primary" class="clear-btn" (click)="markAllAlertsRead()">
+            Clear
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        @if (unreadCount() === 0) {
+          <div class="no-alerts-msg">No unread alerts.</div>
+        } @else {
+          <button mat-menu-item routerLink="/dashboard">
+            <mat-icon color="warn">crisis_alert</mat-icon>
+            <span>Review Alerts on Dashboard</span>
+          </button>
+        }
+      </mat-menu>
+
+      <!-- User Menu -->
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
+        <span class="user-avatar-initials">{{ userInitials() }}</span>
+        <span class="user-display-name">{{ currentUser()?.displayName }}</span>
+        <mat-icon class="user-dropdown-icon">arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="user-menu-header" (click)="$event.stopPropagation()">
+          <div class="user-menu-name">{{ currentUser()?.displayName }}</div>
+          <div class="user-menu-role">{{ currentUser()?.email }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="navigateToProfile()">
+          <mat-icon>manage_accounts</mat-icon> Profile & Terminal
+        </button>
+        <button mat-menu-item (click)="navigateToSettings()">
+          <mat-icon>tune</mat-icon> System Preferences
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon color="warn">logout</mat-icon> Sign Out Session
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <!-- Main Router Outlet Area -->
+    <main class="page-viewport">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

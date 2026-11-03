@@ -1,0 +1,243 @@
+<div class="target-list-page">
+  <!-- Page Header -->
+  <header class="list-header">
+    <div>
+      <h1 class="page-title">Intelligence Target Roster</h1>
+      <p class="page-subtitle">National surveillance subjects, fugitive tracking, and syndicate operatives</p>
+    </div>
+    @if (selection.hasValue()) {
+      <button mat-flat-button color="accent" class="compare-btn" (click)="compareOnMap()">
+        <mat-icon>compare_arrows</mat-icon> Compare {{ selection.selected.length }} on Tactical Map
+      </button>
+    }
+  </header>
+
+  <!-- Filter & Action Toolbar -->
+  <mat-card class="toolbar-card">
+    <div class="toolbar-top">
+      <!-- Search Input -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search targets by alias, name, syndicate, or tags...</mat-label>
+        <input
+          matInput
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event); applyFilter()"
+          placeholder="e.g. PHANTOM, Mumbai, narco"
+        />
+        @if (searchQuery()) {
+          <button mat-icon-button matSuffix (click)="searchQuery.set(''); applyFilter()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <!-- Column Visibility Menu -->
+      <button mat-stroked-button [matMenuTriggerFor]="colMenu" class="col-vis-btn">
+        <mat-icon>view_column</mat-icon> Columns
+      </button>
+      <mat-menu #colMenu="matMenu">
+        @for (col of allColumns; track col) {
+          @if (col !== 'select' && col !== 'actions') {
+            <button mat-menu-item (click)="toggleColumn(col)">
+              <mat-checkbox [checked]="isColumnVisible(col)" (click)="$event.stopPropagation()">
+                {{ columnLabels[col] || col }}
+              </mat-checkbox>
+            </button>
+          }
+        }
+      </mat-menu>
+    </div>
+
+    <!-- Multi-Filter Chips Section -->
+    <div class="filter-chips-section">
+      <!-- Categories Filter -->
+      <div class="chip-group">
+        <span class="group-label">Category:</span>
+        @for (cat of categories; track cat) {
+          <span
+            class="filter-pill"
+            [class.active]="selectedCategories().includes(cat)"
+            (click)="toggleCategory(cat)"
+          >
+            {{ cat }}
+          </span>
+        }
+      </div>
+
+      <!-- Threat Level Filter -->
+      <div class="chip-group">
+        <span class="group-label">Threat:</span>
+        @for (tl of threatLevels; track tl) {
+          <span
+            class="filter-pill"
+            [class.active]="selectedThreatLevels().includes(tl)"
+            (click)="toggleThreatLevel(tl)"
+          >
+            {{ tl }}
+          </span>
+        }
+      </div>
+
+      <!-- Status Filter -->
+      <div class="chip-group">
+        <span class="group-label">Status:</span>
+        @for (st of statuses; track st) {
+          <span
+            class="filter-pill"
+            [class.active]="selectedStatuses().includes(st)"
+            (click)="toggleStatus(st)"
+          >
+            {{ st }}
+          </span>
+        }
+      </div>
+
+      @if (hasActiveFilters) {
+        <button mat-button color="warn" class="clear-filters-btn" (click)="clearAllFilters()">
+          <mat-icon>filter_alt_off</mat-icon> Clear Filters
+        </button>
+      }
+    </div>
+  </mat-card>
+
+  <!-- Targets Data Table -->
+  <mat-card class="table-card">
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="roster-table">
+        <!-- Select Checkbox Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef class="checkbox-col">
+            <mat-checkbox
+              (change)="$event ? masterToggle() : null"
+              [checked]="selection.hasValue() && isAllSelected()"
+              [indeterminate]="selection.hasValue() && !isAllSelected()"
+            >
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row" class="checkbox-col" (click)="$event.stopPropagation()">
+            <mat-checkbox
+              (click)="$event.stopPropagation()"
+              (change)="$event ? selection.toggle(row) : null"
+              [checked]="selection.isSelected(row)"
+            >
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- Avatar Column -->
+        <ng-container matColumnDef="avatar">
+          <th mat-header-cell *matHeaderCellDef class="avatar-col">Photo</th>
+          <td mat-cell *matCellDef="let row" class="avatar-col">
+            <app-avatar [name]="row.alias" size="sm"></app-avatar>
+          </td>
+        </ng-container>
+
+        <!-- Alias Column -->
+        <ng-container matColumnDef="alias">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Alias</th>
+          <td mat-cell *matCellDef="let row" class="alias-col">
+            <div class="alias-wrap">
+              @if (row.threatLevel === 'CRITICAL') {
+                <span class="critical-indicator" matTooltip="CRITICAL THREAT PRIORITY"></span>
+              }
+              <span class="alias-text font-mono">{{ row.alias }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Full Name Column -->
+        <ng-container matColumnDef="fullName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Full Name</th>
+          <td mat-cell *matCellDef="let row" class="name-col">
+            {{ row.fullName }}
+          </td>
+        </ng-container>
+
+        <!-- Category Column -->
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="category-pill" [style.border-color]="categoryColor(row.category)">
+              {{ row.category }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Organization Column -->
+        <ng-container matColumnDef="organization">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Syndicate / Group</th>
+          <td mat-cell *matCellDef="let row" class="org-col">
+            {{ row.organization }}
+          </td>
+        </ng-container>
+
+        <!-- Threat Level Column -->
+        <ng-container matColumnDef="threatLevel">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Threat Level</th>
+          <td mat-cell *matCellDef="let row">
+            <app-threat-chip [threatLevel]="row.threatLevel"></app-threat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let row">
+            <app-status-badge [status]="row.status"></app-status-badge>
+          </td>
+        </ng-container>
+
+        <!-- Last Seen Column -->
+        <ng-container matColumnDef="lastSeen">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Sighted</th>
+          <td mat-cell *matCellDef="let row" class="time-col">
+            {{ row.lastSeen | timeAgo }}
+          </td>
+        </ng-container>
+
+        <!-- Location Column -->
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>Last Known City</th>
+          <td mat-cell *matCellDef="let row" class="location-col">
+            <div class="loc-wrap">
+              <mat-icon class="pin-icon">place</mat-icon>
+              <span>{{ lastLocation(row) }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col">Operations</th>
+          <td mat-cell *matCellDef="let row" class="actions-col" (click)="$event.stopPropagation()">
+            <button mat-icon-button (click)="viewOnMap(row)" matTooltip="Track on Map">
+              <mat-icon color="primary">map</mat-icon>
+            </button>
+            <button mat-icon-button (click)="navigateToDetail(row)" matTooltip="Open Full Dossier">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns()"
+          class="roster-row"
+          [class.critical-row]="row.threatLevel === 'CRITICAL'"
+          (click)="navigateToDetail(row)"
+        ></tr>
+      </table>
+    </div>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [pageSize]="10"
+      [pageSizeOptions]="[5, 10, 20]"
+      showFirstLastButtons
+      class="table-paginator"
+    ></mat-paginator>
+  </mat-card>
+</div>
+

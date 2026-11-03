@@ -1,0 +1,264 @@
+.login-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-color: #080c14;
+  color: #f8fafc;
+  font-family: 'Roboto', sans-serif;
+
+  &.theme-light {
+    background-color: #f1f5f9;
+    color: #0f172a;
+
+    .login-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .classified-text {
+      color: rgba(0, 0, 0, 0.03);
+    }
+  }
+}
+
+.classified-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  opacity: 0.7;
+}
+
+.classified-text {
+  font-size: 8rem;
+  font-weight: 900;
+  letter-spacing: 0.4em;
+  color: rgba(255, 255, 255, 0.02);
+  white-space: nowrap;
+  transform: rotate(-12deg);
+}
+
+.theme-toggle-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  position: relative;
+  z-index: 5;
+}
+
+.login-card {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+}
+
+.shield-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.app-subtitle {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.confidential-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.warning-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.field-prefix-icon {
+  margin-right: 8px;
+  color: #94a3b8;
+}
+
+.login-btn {
+  height: 44px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: 8px;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.quick-access-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quick-access-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.quick-users-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.quick-user-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.3);
+  }
+}
+
+.quick-role {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.quick-badge {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.login-footer {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+
+  .footer-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: inherit;
+    line-height: 1;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+  }
+}
+
+.theme-light .login-footer {
+  color: #64748b;
+}
+
+.system-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.quick-access-label {
+  display: flex;
+}
+
+.quick-chip {
+  margin-right: 10px;
+}

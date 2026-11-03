@@ -1,0 +1,11 @@
+{
+  "name": "target-tracking-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix target-track start",
+    "build": "npm --prefix target-track run build",
+    "test": "npm --prefix target-track run test"
+  }
+}
+
