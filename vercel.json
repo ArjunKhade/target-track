@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/target-track/browser",
   "framework": "angular",
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/(.*)",
