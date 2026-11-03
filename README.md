@@ -211,6 +211,97 @@
 
 ---
 
+## 📦 Project Structure
+
+```
+target-track/
+├── public/
+│   └── assets/
+│       └── leaflet/                  # Leaflet 2x marker icons, retina & shadows
+├── src/
+│   ├── index.html                    # Fonts (Roboto, JetBrains Mono, Material Icons)
+│   ├── styles.scss                   # Tactical dark/light themes, pulse animations, Leaflet styles
+│   ├── main.ts                       # Angular bootstrap
+│   └── app/
+│       ├── app.ts                    # Root app component (Theme initialization)
+│       ├── app.html                  # Router outlet
+│       ├── app.config.ts             # Providers (Router, AnimationsAsync, HttpClient, ECharts)
+│       ├── app.routes.ts             # Lazy-loaded routes with authGuard & roleGuard
+│       │
+│       ├── core/
+│       │   ├── guards/
+│       │   │   ├── auth.guard.ts     # Route protection (redirect to /login)
+│       │   │   └── role.guard.ts     # Role hierarchy check (Admin > Officer > Viewer)
+│       │   ├── interceptors/
+│       │   │   ├── api.interceptor.ts   # X-Request-ID, Bearer token injection, request auditing
+│       │   │   └── auth.interceptor.ts  # 401 response handling and auto logout
+│       │   ├── mock/
+│       │   │   ├── targets.mock.ts   # 10 fictional targets across realistic Indian transit routes
+│       │   │   ├── users.mock.ts     # Admin, Officer, Viewer credentials
+│       │   │   ├── alerts.mock.ts    # Initial situational alerts
+│       │   │   ├── geofences.mock.ts # Radial & polygonal restricted perimeters
+│       │   │   ├── case-notes.mock.ts# Intelligence logs & case records
+│       │   │   ├── evidence.mock.ts  # Attachments (CCTV frames, drone footage, wiretaps)
+│       │   │   └── audit-log.mock.ts # Immutable security audit trail
+│       │   ├── models/
+│       │   │   ├── target.model.ts   # Target, LocationPoint, Category, ThreatLevel, Status
+│       │   │   ├── alert.model.ts    # Alert, AlertSeverity, AlertType
+│       │   │   ├── geofence.model.ts # GeofenceZone, GeofenceShape
+│       │   │   ├── user.model.ts     # User, UserRole, AuthSession
+│       │   │   ├── audit.model.ts    # AuditEntry, AuditAction
+│       │   │   ├── case-note.model.ts# CaseNote
+│       │   │   └── evidence.model.ts # Evidence, EvidenceType
+│       │   └── services/
+│       │       ├── target.service.ts # Reactive target state, signal counters, mock API delay
+│       │       ├── map.service.ts    # Multi-target selection, layer states, date range
+│       │       ├── geofence.service.ts# Zone CRUD, localStorage sync, violation detection
+│       │       ├── alert.service.ts  # Live alert generation interval (15-30s), unread count
+│       │       ├── auth.service.ts   # Session persistence, role verification
+│       │       ├── audit.service.ts  # Security event recording and export
+│       │       ├── export.service.ts # PDF, CSV, GeoJSON export generators
+│       │       └── theme.service.ts  # Dark Command Center vs. Light mode toggle
+│       │
+│       ├── layout/
+│       │   └── shell/
+│       │       ├── shell.component.ts   # Sidenav, Live Clock, Notifications, User Menu
+│       │       ├── shell.component.html # Material layout wrapper
+│       │       └── shell.component.scss # Command center sidebar styling
+│       │
+│       ├── features/
+│       │   ├── login/                # Classified terminal login + 1-click test role access
+│       │   ├── dashboard/            # Stat counters, 4 ECharts, mini overview map, live alerts
+│       │   ├── targets/
+│       │   │   ├── list/             # MatTable, sorting, pagination, multi-select, column toggles
+│       │   │   └── detail/           # Hosts MapView pre-selected for target
+│       │   ├── map/
+│       │   │   ├── map-view.component.ts        # Flagship Leaflet tracking & playback engine
+│       │   │   ├── case-notes.component.ts      # Target intelligence notes CRUD
+│       │   │   ├── evidence.component.ts        # Vault file metadata attachment simulation
+│       │   │   └── intersection-dialog.component.ts # Meeting convergence detection details
+│       │   ├── analytics/            # Syndicate association graph & convergence matrix
+│       │   ├── geofences/            # Perimeter deployment, violation counter, armed toggle
+│       │   └── audit-log/            # Chronological security register & CSV download
+│       │
+│       └── shared/
+│           ├── components/
+│           │   ├── avatar/           # Initials badge with deterministic color hash
+│           │   ├── status-badge/     # Status chip (Active, Under Surveillance, Captured, Lost)
+│           │   ├── threat-chip/      # Threat badge with pulse animation for CRITICAL
+│           │   ├── empty-state/      # Centered empty state feedback
+│           │   └── confirm-dialog/   # Reusable MatDialog for deletion confirmations
+│           ├── pipes/
+│           │   ├── time-ago.pipe.ts  # Relative timestamp ("2 hours ago")
+│           │   ├── format-km.pipe.ts # Distance formatting ("1,245.8 km")
+│           │   └── confidence.pipe.ts# Percent formatter ("85%")
+│           ├── constants/
+│           │   └── app.constants.ts  # WCAG-safe threat palettes, route colors, timeouts
+│           └── utils/
+│               ├── geo.utils.ts      # Haversine, bearing, route interpolation, next-point projection, ray-casting
+│               └── geo.utils.spec.ts # Mathematical unit test suite
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

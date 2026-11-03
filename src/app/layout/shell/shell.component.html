@@ -105,9 +105,11 @@
 
       <!-- User Menu -->
       <button mat-button [matMenuTriggerFor]="userMenu" class="user-btn">
-        <span class="user-avatar-initials">{{ userInitials() }}</span>
-        <span class="user-display-name">{{ currentUser()?.displayName }}</span>
-        <mat-icon class="user-dropdown-icon">arrow_drop_down</mat-icon>
+        <div class="user-btn-content">
+          <span class="user-avatar-initials">{{ userInitials() }}</span>
+          <span class="user-display-name">{{ currentUser()?.displayName }}</span>
+        </div>
+        <mat-icon iconPositionEnd class="user-dropdown-icon">arrow_drop_down</mat-icon>
       </button>
       <mat-menu #userMenu="matMenu">
         <div class="user-menu-header" (click)="$event.stopPropagation()">

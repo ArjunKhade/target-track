@@ -1,9 +1,7 @@
 .git
 .angular
 node_modules
-target-track/node_modules
 dist
-target-track/dist
 .vscode
 .gemini
 
