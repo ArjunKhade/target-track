@@ -10,17 +10,12 @@
   </div>
 
   <!-- Theme toggle top-right -->
-  <button
-    mat-icon-button
-    class="theme-toggle-btn"
-    (click)="toggleTheme()"
-    [matTooltip]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-    aria-label="Toggle theme"
-  >
+  <button mat-icon-button class="theme-toggle-btn" (click)="toggleTheme()"
+    [matTooltip]="themeService.isDark() ? 'Switch to Light Mode' : 'Switch to Dark Mode'" aria-label="Toggle theme">
     @if (themeService.isDark()) {
-      <mat-icon>light_mode</mat-icon>
+    <mat-icon>light_mode</mat-icon>
     } @else {
-      <mat-icon>dark_mode</mat-icon>
+    <mat-icon>dark_mode</mat-icon>
     }
   </button>
 
@@ -42,7 +37,7 @@
 
         <!-- Confidential Warning Banner -->
         <div class="confidential-banner" role="alert">
-          <mat-icon class="warning-icon">gpp_bad</mat-icon>
+          <!-- <mat-icon class="warning-icon">gpp_bad</mat-icon> -->
           <span>CONFIDENTIAL SYSTEM — AUTHORISED ACCESS ONLY</span>
           <mat-icon class="warning-icon">gpp_bad</mat-icon>
         </div>
@@ -54,15 +49,10 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Badge / Username</mat-label>
             <mat-icon matPrefix class="field-prefix-icon">badge</mat-icon>
-            <input
-              matInput
-              formControlName="username"
-              placeholder="Enter your badge ID"
-              autocomplete="username"
-              [attr.aria-describedby]="loginForm.controls.username.invalid && loginForm.controls.username.touched ? 'username-error' : null"
-            />
+            <input matInput formControlName="username" placeholder="Enter your badge ID" autocomplete="username"
+              [attr.aria-describedby]="loginForm.controls.username.invalid && loginForm.controls.username.touched ? 'username-error' : null" />
             @if (loginForm.controls.username.invalid && loginForm.controls.username.touched) {
-              <mat-error id="username-error">Username is required</mat-error>
+            <mat-error id="username-error">Username is required</mat-error>
             }
           </mat-form-field>
 
@@ -70,58 +60,39 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Access Code</mat-label>
             <mat-icon matPrefix class="field-prefix-icon">lock</mat-icon>
-            <input
-              matInput
-              formControlName="password"
-              [type]="showPassword() ? 'text' : 'password'"
-              placeholder="Enter access code"
-              autocomplete="current-password"
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              type="button"
-              (click)="togglePasswordVisibility()"
-              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-            >
+            <input matInput formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+              placeholder="Enter access code" autocomplete="current-password" />
+            <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
               @if (showPassword()) {
-                <mat-icon>visibility_off</mat-icon>
+              <mat-icon>visibility_off</mat-icon>
               } @else {
-                <mat-icon>visibility</mat-icon>
+              <mat-icon>visibility</mat-icon>
               }
             </button>
             @if (loginForm.controls.password.invalid && loginForm.controls.password.touched) {
-              <mat-error>Access code is required</mat-error>
+            <mat-error>Access code is required</mat-error>
             }
           </mat-form-field>
 
           <!-- Error Message -->
           @if (loginError()) {
-            <div class="error-banner" role="alert" aria-live="assertive">
-              <mat-icon>dangerous</mat-icon>
-              <span>{{ loginError() }}</span>
-            </div>
+          <div class="error-banner" role="alert" aria-live="assertive">
+            <mat-icon>dangerous</mat-icon>
+            <span>{{ loginError() }}</span>
+          </div>
           }
 
           <!-- Submit Button -->
-          <button
-            mat-flat-button
-            class="login-btn full-width"
-            type="submit"
-            [disabled]="isLoading()"
-            aria-label="Authenticate and login"
-          >
+          <button mat-flat-button class="login-btn full-width" type="submit" [disabled]="isLoading()"
+            aria-label="Authenticate and login">
             <span class="btn-content">
               @if (isLoading()) {
-                <mat-progress-spinner
-                  diameter="20"
-                  mode="indeterminate"
-                  class="btn-spinner"
-                ></mat-progress-spinner>
-                <span>AUTHENTICATING...</span>
+              <mat-progress-spinner diameter="20" mode="indeterminate" class="btn-spinner"></mat-progress-spinner>
+              <span>AUTHENTICATING...</span>
               } @else {
-                <mat-icon>fingerprint</mat-icon>
-                <span>AUTHENTICATE</span>
+              <mat-icon>fingerprint</mat-icon>
+              <span>AUTHENTICATE</span>
               }
             </span>
           </button>
@@ -136,16 +107,11 @@
           </p>
           <div class="quick-chips">
             @for (user of quickUsers; track user.username) {
-              <button
-                mat-stroked-button
-                class="quick-chip"
-                type="button"
-                (click)="fillQuickLogin(user.username)"
-                [matTooltip]="user.role"
-              >
-                <mat-icon>{{ user.icon }}</mat-icon>
-                {{ user.label }}
-              </button>
+            <button mat-stroked-button class="quick-chip" type="button" (click)="fillQuickLogin(user.username)"
+              [matTooltip]="user.role">
+              <mat-icon>{{ user.icon }}</mat-icon>
+              {{ user.label }}
+            </button>
             }
           </div>
         </div>

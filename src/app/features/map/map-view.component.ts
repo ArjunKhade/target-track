@@ -116,8 +116,8 @@ interface DwellPoint extends LocationPoint {
   ],
   template: `
     <div class="map-view-shell" [class.is-fullscreen]="isFullscreen()">
-      <!-- LEFT PANEL -->
-      <aside class="left-panel" [class.mobile-hidden]="!showMobileDossier()">
+      <!-- TARGET DOSSIER & INTELLIGENCE PANEL (Left on desktop, below replay bar on mobile) -->
+      <aside class="left-panel" id="target-dossier-panel">
         <!-- Target Selector & Quick Switcher -->
         <div class="target-selector-bar">
           <mat-form-field appearance="outline" class="w-full compact-field">
@@ -309,15 +309,14 @@ interface DwellPoint extends LocationPoint {
       <main class="map-panel">
         <!-- MAP TOOLBAR -->
         <header class="map-toolbar">
-          <!-- Mobile Dossier Toggle Button -->
+          <!-- Mobile Dossier Jump Button -->
           <button
             mat-button
             class="mobile-dossier-toggle"
-            [class.active]="showMobileDossier()"
-            (click)="toggleMobileDossier()"
+            (click)="scrollToDossier()"
           >
-            <mat-icon>{{ showMobileDossier() ? 'map' : 'badge' }}</mat-icon>
-            <span>{{ showMobileDossier() ? 'Full Map' : 'Dossier' }}</span>
+            <mat-icon>badge</mat-icon>
+            <span>Dossier</span>
           </button>
 
           <!-- Base Layer Switcher -->
@@ -572,23 +571,60 @@ interface DwellPoint extends LocationPoint {
     }
     @media (max-width: 1024px) {
       .map-view-shell {
-        flex-direction: column-reverse;
-      }
-      .left-panel {
-        width: 100%;
-        min-width: 100%;
-        max-width: 100%;
-        height: 50%;
-        border-right: none;
-        border-top: 1px solid var(--border-color);
-        transition: all 0.25s ease;
-      }
-      .left-panel.mobile-hidden {
-        display: none !important;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: calc(100vh - 56px);
+        overflow-y: visible !important;
       }
       .map-panel {
-        flex: 1;
-        width: 100%;
+        order: 1;
+        width: 100% !important;
+        height: auto !important;
+        flex: none !important;
+        display: flex;
+        flex-direction: column;
+      }
+      .map-wrapper {
+        height: 48vh !important;
+        min-height: 340px !important;
+        max-height: 500px !important;
+        width: 100% !important;
+        position: relative !important;
+        flex: none !important;
+      }
+      .map-canvas {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 340px !important;
+      }
+      .left-panel {
+        order: 2;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        border-right: none !important;
+        border-top: 2px solid var(--border-color) !important;
+        display: flex !important;
+        flex-direction: column;
+      }
+      .left-panel.mobile-hidden {
+        display: flex !important;
+      }
+      .profile-card {
+        margin: 12px 10px;
+      }
+      .target-selector-bar {
+        padding: 12px 10px 8px;
+      }
+      .tabs-container {
+        padding: 0 10px 16px;
       }
     }
 
@@ -1017,8 +1053,12 @@ interface DwellPoint extends LocationPoint {
       flex: 1;
       position: relative;
       overflow: hidden;
+      min-height: 320px;
     }
     .map-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
     }
@@ -1265,6 +1305,10 @@ interface DwellPoint extends LocationPoint {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px;
+      }
     }
   `],
 })
@@ -1278,6 +1322,13 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.map?.invalidateSize();
     }, 250);
+  }
+
+  scrollToDossier(): void {
+    const el = document.getElementById('target-dossier-panel');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   private readonly targetService = inject(TargetService);
@@ -1310,7 +1361,7 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly showClustering = signal<boolean>(false);
   readonly showGeofences = signal<boolean>(true);
   readonly showPrediction = signal<boolean>(false);
-  readonly activeBaseLayer = signal<BaseLayerType>('dark');
+  readonly activeBaseLayer = signal<BaseLayerType>('osm');
   readonly isFullscreen = signal<boolean>(false);
 
   // Playback state
@@ -1500,6 +1551,17 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initMap();
+    setTimeout(() => {
+      this.map?.invalidateSize();
+    }, 100);
+    setTimeout(() => {
+      this.map?.invalidateSize();
+    }, 400);
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.map?.invalidateSize();
   }
 
   ngOnDestroy(): void {
@@ -1564,8 +1626,8 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
         }),
       };
 
-      // Add default dark layer
-      this.tileLayers['dark'].addTo(this.map);
+      // Add default street layer
+      this.tileLayers['osm'].addTo(this.map);
 
       // Layer groups
       this.clusterGroup = L.markerClusterGroup({

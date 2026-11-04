@@ -210,7 +210,7 @@ interface IntersectSummary {
       font-weight: 800;
       letter-spacing: -0.02em;
       margin: 0 0 4px;
-      color: #f8fafc;
+      color: var(--text-primary);
     }
     .page-subtitle {
       color: var(--text-secondary);

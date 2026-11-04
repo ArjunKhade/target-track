@@ -205,9 +205,8 @@ import { AuthService } from '../../core/services/auth.service';
     .page-title {
       font-size: 1.6rem;
       font-weight: 800;
-      color: #f8fafc;
-      margin: 0 0 4px;
       color: var(--text-primary);
+      margin: 0 0 4px;
     }
     .page-subtitle {
       color: var(--text-secondary);

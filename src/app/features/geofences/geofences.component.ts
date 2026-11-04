@@ -61,7 +61,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
           <p class="page-subtitle">Configure spatial tripwires, perimeter exclusions, and tactical watch corridors</p>
         </div>
         @if (authService.isAdmin()) {
-          <button mat-flat-button color="primary" (click)="openAddModal()">
+          <button mat-flat-button color="primary" class="create-zone-btn" (click)="openAddModal()">
             <mat-icon>add_location_alt</mat-icon> Create Geofence Zone
           </button>
         }
@@ -299,7 +299,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     .page-title {
       font-size: 1.6rem;
       font-weight: 800;
-      color: #f8fafc;
+      color: var(--text-primary);
       margin: 0 0 4px;
     }
     .page-subtitle {
@@ -330,7 +330,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     .zone-name {
       font-weight: 700;
       font-size: 0.92rem;
-      color: #f1f5f9;
+      color: var(--text-primary);
     }
     .zone-desc {
       font-size: 0.78rem;
@@ -396,14 +396,20 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
       flex-wrap: wrap;
     }
     @media (max-width: 768px) {
-      .geofences-page {
-        padding: 14px 10px;
-        gap: 14px;
+      .geofence-page {
+        padding: 12px 10px;
+        gap: 12px;
       }
       .page-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        align-items: stretch !important;
+        gap: 12px;
+      }
+      .create-zone-btn {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
       }
       .page-title {
         font-size: 1.35rem;
@@ -413,8 +419,18 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         gap: 8px;
       }
       .table-card {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        overflow-x: visible;
+      }
+      .mobile-geofence-cards {
+        padding: 0 !important;
+        gap: 10px;
+      }
+      .geofence-card {
+        padding: 12px;
       }
       table {
         min-width: 600px;
