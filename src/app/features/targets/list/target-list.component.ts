@@ -8,6 +8,7 @@ import {
   ViewChild,
   inject,
   signal,
+  computed,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -29,17 +30,31 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SelectionModel } from '@angular/cdk/collections';
 
 import { TargetService } from '../../../core/services/target.service';
 import { AuditService } from '../../../core/services/audit.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Target, TargetCategory, ThreatLevel, TargetStatus } from '../../../core/models/target.model';
+import { Target, TargetCategory, ThreatLevel, TargetStatus, LocationPoint } from '../../../core/models/target.model';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ThreatChipComponent } from '../../../shared/components/threat-chip/threat-chip.component';
 import { AvatarComponent } from '../../../shared/components/avatar/avatar.component';
 import { TimeAgoPipe } from '../../../shared/pipes/time-ago.pipe';
 import { APP_CONSTANTS } from '../../../shared/constants/app.constants';
+import {
+  TargetFormDialogComponent,
+  TargetFormDialogData,
+} from '../form-dialog/target-form-dialog.component';
+import {
+  LocationDialogComponent,
+  LocationDialogData,
+} from '../location-dialog/location-dialog.component';
+import {
+  AssociateDialogComponent,
+  AssociateDialogData,
+  AssociateResult,
+} from '../associate-dialog/associate-dialog.component';
 
 /**
  * TargetListComponent — full-featured sortable, filterable, paginated
@@ -70,6 +85,7 @@ import { APP_CONSTANTS } from '../../../shared/constants/app.constants';
     MatTooltipModule,
     MatSelectModule,
     MatBadgeModule,
+    MatDialogModule,
     // Shared
     StatusBadgeComponent,
     ThreatChipComponent,
@@ -84,9 +100,12 @@ export class TargetListComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly auditService = inject(AuditService);
   private readonly authService = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroy$ = new Subject<void>();
+
+  readonly isAdmin = computed(() => this.authService.isAdmin());
 
   // ── Mobile state ───────────────────────────────────────────────────────────
   readonly isMobile = signal<boolean>(false);
@@ -289,6 +308,217 @@ export class TargetListComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.router.navigate(['/map'], { queryParams: { targetIds: ids.join(',') } });
+  }
+
+  /**
+   * Open the Reactive Form dialog to register a new target (admin only).
+   */
+  openAddTargetDialog(): void {
+    if (!this.isAdmin()) {
+      this.snackBar.open('Access Denied: Only administrators can register new targets.', 'Dismiss', {
+        duration: 3500,
+        panelClass: 'snack-warn',
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open<
+      TargetFormDialogComponent,
+      TargetFormDialogData,
+      Partial<Target>
+    >(TargetFormDialogComponent, {
+      width: '680px',
+      maxWidth: '95vw',
+      panelClass: 'tactical-dialog-panel',
+      data: {
+        mode: 'create',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(newTargetData => {
+      if (!newTargetData) return;
+
+      this.targetService.createTarget(newTargetData).subscribe({
+        next: created => {
+          const user = this.authService.currentUser();
+          if (user) {
+            this.auditService.record(
+              'TARGET_CREATE',
+              user,
+              `Registered new target ${created.alias} (${created.fullName})`,
+              created.id,
+              created.alias
+            );
+          }
+          const ref = this.snackBar.open(
+            `Target ${created.alias} registered successfully.`,
+            'View Dossier',
+            { duration: 5000 }
+          );
+          ref.onAction().subscribe(() => {
+            this.router.navigate(['/targets', created.id]);
+          });
+          this.refreshTargets();
+        },
+        error: () => {
+          this.snackBar.open('Failed to register new target.', 'Dismiss', { duration: 3000 });
+        },
+      });
+    });
+  }
+
+  /**
+   * Open the Reactive Form dialog to edit an existing target's dossier.
+   */
+  openEditTargetDialog(target: Target): void {
+    const dialogRef = this.dialog.open<
+      TargetFormDialogComponent,
+      TargetFormDialogData,
+      Partial<Target>
+    >(TargetFormDialogComponent, {
+      width: '680px',
+      maxWidth: '95vw',
+      panelClass: 'tactical-dialog-panel',
+      data: {
+        mode: 'edit',
+        target,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(updates => {
+      if (!updates) return;
+
+      this.targetService.updateTarget(target.id, updates).subscribe({
+        next: updated => {
+          const user = this.authService.currentUser();
+          if (user) {
+            this.auditService.record(
+              'TARGET_UPDATE',
+              user,
+              `Updated dossier details for ${updated.alias}`,
+              updated.id,
+              updated.alias
+            );
+          }
+          this.snackBar.open(
+            `Target ${updated.alias} dossier updated.`,
+            'Dismiss',
+            { duration: 3500 }
+          );
+          this.refreshTargets();
+        },
+        error: () => {
+          this.snackBar.open('Failed to update target dossier.', 'Dismiss', { duration: 3000 });
+        },
+      });
+    });
+  }
+
+  /**
+   * Open the Reactive Form dialog to log a new verified sighting location for a target.
+   */
+  openAddLocationDialog(target: Target): void {
+    const dialogRef = this.dialog.open<
+      LocationDialogComponent,
+      LocationDialogData,
+      LocationPoint
+    >(LocationDialogComponent, {
+      width: '640px',
+      maxWidth: '95vw',
+      panelClass: 'tactical-dialog-panel',
+      data: {
+        target,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(newPoint => {
+      if (!newPoint) return;
+
+      this.targetService.addLocationPoint(target.id, newPoint).subscribe({
+        next: updated => {
+          const user = this.authService.currentUser();
+          if (user) {
+            this.auditService.record(
+              'TARGET_LOCATION_UPDATE',
+              user,
+              `Logged new sighting in ${newPoint.city}, ${newPoint.state} (${newPoint.activity})`,
+              updated.id,
+              updated.alias
+            );
+          }
+          this.snackBar.open(
+            `New sighting logged for ${updated.alias} in ${newPoint.city}`,
+            'Dismiss',
+            { duration: 4000 }
+          );
+          this.refreshTargets();
+        },
+        error: () => {
+          this.snackBar.open('Failed to log new sighting location.', 'Dismiss', { duration: 3000 });
+        },
+      });
+    });
+  }
+
+  /**
+   * Open dialog to link a new associate to this target's network.
+   */
+  openAddAssociateDialog(target: Target): void {
+    const dialogRef = this.dialog.open<
+      AssociateDialogComponent,
+      AssociateDialogData,
+      AssociateResult
+    >(AssociateDialogComponent, {
+      width: '640px',
+      maxWidth: '95vw',
+      panelClass: 'tactical-dialog-panel',
+      data: {
+        target,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(res => {
+      if (!res) return;
+
+      this.targetService
+        .addAssociate(target.id, res.associateId, res.bidirectional, res.notes)
+        .subscribe({
+          next: updated => {
+            const user = this.authService.currentUser();
+            if (user) {
+              this.auditService.record(
+                'ASSOCIATE_ADD',
+                user,
+                `Linked associate ${res.associateId} to ${updated.alias} (${res.relationship})`,
+                updated.id,
+                updated.alias
+              );
+            }
+            this.snackBar.open(
+              `Associate ${res.associateId} linked to ${updated.alias}`,
+              'Dismiss',
+              { duration: 3500 }
+            );
+            this.refreshTargets();
+          },
+          error: () => {
+            this.snackBar.open('Failed to link associate', 'Dismiss', {
+              duration: 3000,
+            });
+          },
+        });
+    });
+  }
+
+  /**
+   * Refresh targets from service and re-apply current filter parameters.
+   */
+  refreshTargets(): void {
+    this.targetService.getTargets().subscribe(targets => {
+      this.dataSource.data = targets;
+      this.applyFilter();
+      this.cdr.markForCheck();
+    });
   }
 
   toggleColumn(col: string): void {

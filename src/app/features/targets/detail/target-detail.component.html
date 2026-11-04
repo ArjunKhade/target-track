@@ -1,0 +1,328 @@
+<div class="target-dossier-page">
+  <!-- Top Navigation & Action Header -->
+  <header class="dossier-header">
+    <div class="header-left">
+      <button mat-stroked-button (click)="goBack()" class="back-btn font-mono">
+        <mat-icon>arrow_back</mat-icon> Target Roster
+      </button>
+      @if (target(); as t) {
+        <div class="header-target-identity">
+          <div class="alias-title-row">
+            <h1 class="target-alias font-mono">{{ t.alias }}</h1>
+            <span class="target-id font-mono">[{{ t.id }}]</span>
+            @if (t.threatLevel === 'CRITICAL') {
+              <span class="critical-indicator" matTooltip="CRITICAL THREAT PRIORITY"></span>
+            }
+          </div>
+          <div class="header-chips">
+            <app-threat-chip [threatLevel]="t.threatLevel"></app-threat-chip>
+            <app-status-badge [status]="t.status"></app-status-badge>
+            <span class="category-pill">{{ t.category }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Header Actions -->
+    @if (target(); as t) {
+      <div class="header-actions">
+        <button mat-flat-button color="accent" (click)="openAddLocationDialog(t)" class="action-btn log-loc-btn font-mono">
+          <mat-icon>add_location_alt</mat-icon>
+          <span>Log Next Location</span>
+        </button>
+        <button mat-flat-button color="primary" (click)="trackOnMap(t)" class="action-btn font-mono">
+          <mat-icon>explore</mat-icon>
+          <span>Track on Map</span>
+        </button>
+        <button mat-stroked-button (click)="openEditDialog(t)" class="action-btn edit-btn font-mono">
+          <mat-icon>edit</mat-icon>
+          <span>Edit Dossier</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="state-container">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p class="state-text font-mono">DECRYPTING CLASSIFIED DOSSIER...</p>
+    </div>
+  }
+
+  <!-- Target Not Found State -->
+  @if (!loading() && !target()) {
+    <div class="state-container not-found">
+      <mat-icon class="large-icon">search_off</mat-icon>
+      <h2 class="font-mono">TARGET NOT FOUND IN DATABASE</h2>
+      <p>The requested subject ID could not be located in surveillance archives.</p>
+      <button mat-flat-button color="primary" (click)="goBack()">Return to Roster</button>
+    </div>
+  }
+
+  <!-- Main Dossier Content -->
+  @if (!loading() && target(); as t) {
+    <div class="dossier-grid">
+      <!-- Left Column: Primary Intel & Mini Tactical Map -->
+      <div class="dossier-main-col">
+        <!-- Identity Dossier Card -->
+        <mat-card class="tactical-card profile-card">
+          <div class="profile-card-inner">
+            <div class="profile-avatar-box">
+              <app-avatar [name]="t.alias" size="lg"></app-avatar>
+              <div class="avatar-threat-tag" [class]="t.threatLevel.toLowerCase()">
+                {{ t.threatLevel }}
+              </div>
+            </div>
+
+            <div class="profile-info">
+              <div class="info-row">
+                <span class="info-label">Full Legal Name:</span>
+                <span class="info-value font-mono">{{ t.fullName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Affiliated Syndicate:</span>
+                <span class="info-value font-mono highlight">{{ t.organization || 'Independent Operator' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Target Classification:</span>
+                <span class="info-value">{{ t.category }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Sighted:</span>
+                <span class="info-value font-mono">{{ t.lastSeen | timeAgo }} ({{ lastLocation(t) }})</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Total Sighting Records:</span>
+                <span class="info-value font-mono">{{ t.history.length }} registered telemetry points</span>
+              </div>
+
+              <!-- Tags -->
+              @if (t.tags && t.tags.length > 0) {
+                <div class="tags-container">
+                  @for (tag of t.tags; track tag) {
+                    <span class="intel-tag font-mono">#{{ tag }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </mat-card>
+
+        <!-- Mini Tactical Map Card -->
+        <mat-card class="tactical-card map-card">
+          <div class="card-header-bar">
+            <div class="header-label font-mono">
+              <mat-icon>satellite_alt</mat-icon> SIGHTING TRAJECTORY & TELEMETRY
+            </div>
+            <button mat-button color="primary" (click)="trackOnMap(t)" class="open-map-link font-mono">
+              Full Map View <mat-icon>open_in_new</mat-icon>
+            </button>
+          </div>
+          <div class="mini-map-container" #miniMapContainer>
+            <!-- Leaflet map mounted here -->
+          </div>
+        </mat-card>
+
+        <!-- Surveillance History Timeline -->
+        <mat-card class="tactical-card timeline-card">
+          <div class="card-header-bar">
+            <div class="header-label font-mono">
+              <mat-icon>history</mat-icon> SURVEILLANCE TIMELINE & BREADCRUMBS
+            </div>
+            <div class="header-tools">
+              <button mat-stroked-button (click)="openAddLocationDialog(t)" class="timeline-log-btn font-mono">
+                <mat-icon>add_location_alt</mat-icon> Log Sighting
+              </button>
+              <span class="badge-count font-mono">{{ t.history.length }} SIGHTINGS</span>
+            </div>
+          </div>
+
+          <div class="timeline-list">
+            @for (pt of t.history; track pt.timestamp; let i = $index) {
+              <div class="timeline-item" [class.latest]="i === 0">
+                <div class="timeline-marker">
+                  <div class="marker-dot"></div>
+                  @if (i < t.history.length - 1) {
+                    <div class="marker-line"></div>
+                  }
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-city font-mono">{{ pt.city }}, {{ pt.state }}</span>
+                    <span class="timeline-source" [attr.data-source]="pt.source">{{ pt.source }}</span>
+                    <span class="timeline-time font-mono">{{ pt.timestamp | timeAgo }}</span>
+                  </div>
+                  <p class="timeline-activity">{{ pt.activity }}</p>
+                  <div class="timeline-meta font-mono">
+                    <span>GPS: {{ pt.lat | number:'1.4-4' }}, {{ pt.lng | number:'1.4-4' }}</span>
+                    <span class="confidence-pill">Confidence: {{ pt.confidence }}%</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </mat-card>
+      </div>
+
+      <!-- Right Column: Operational Controls & Case Notes -->
+      <div class="dossier-side-col">
+        <!-- Operational Status Controls -->
+        <mat-card class="tactical-card status-control-card">
+          <div class="card-header-bar">
+            <div class="header-label font-mono">
+              <mat-icon>tune</mat-icon> OPERATIONAL STATUS
+            </div>
+          </div>
+
+          <div class="status-control-body">
+            <p class="control-help">Update surveillance classification status immediately:</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Current Status</mat-label>
+              <mat-select [value]="t.status" (selectionChange)="onStatusChange(t, $event.value)">
+                @for (st of statuses; track st) {
+                  <mat-option [value]="st">
+                    {{ st }}
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </mat-card>
+
+        <!-- Known Associates Card -->
+        <mat-card class="tactical-card associates-card">
+          <div class="card-header-bar">
+            <div class="header-label font-mono">
+              <mat-icon>hub</mat-icon> KNOWN ASSOCIATES & NETWORK
+            </div>
+            <div class="header-actions-group">
+              <span class="badge-count font-mono">{{ t.knownAssociates.length }}</span>
+              <button
+                mat-flat-button
+                color="primary"
+                class="add-assoc-btn font-mono"
+                (click)="openAddAssociateDialog(t)"
+                matTooltip="Add or link an associate to this subject's network"
+              >
+                <span class="btn-content-wrap">
+                  <mat-icon>person_add</mat-icon>
+                  <span>Add</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="associates-list">
+            @if (t.knownAssociates.length === 0) {
+              <div class="empty-associates-box">
+                <p class="empty-hint">No confirmed associates logged in network database.</p>
+                <button
+                  mat-stroked-button
+                  class="empty-add-btn font-mono"
+                  (click)="openAddAssociateDialog(t)"
+                >
+                  <mat-icon>person_add</mat-icon> Link First Associate
+                </button>
+              </div>
+            } @else {
+              @for (assocId of t.knownAssociates; track assocId) {
+                @let assoc = getTargetById(assocId);
+                <div class="associate-item" (click)="navigateToAssociate(assocId)">
+                  <app-avatar [name]="assoc?.alias || assocId" size="sm"></app-avatar>
+                  <div class="assoc-details">
+                    <div class="assoc-header-line">
+                      <span class="assoc-alias font-mono">{{ assoc?.alias || assocId }}</span>
+                      <span class="assoc-id font-mono">[{{ assocId }}]</span>
+                      @if (assoc) {
+                        <app-threat-chip [threatLevel]="assoc.threatLevel"></app-threat-chip>
+                      }
+                    </div>
+                    @if (assoc) {
+                      <div class="assoc-meta font-mono">
+                        <span>{{ assoc.fullName }}</span>
+                        <span class="bullet">•</span>
+                        <span>{{ assoc.category }}</span>
+                      </div>
+                    } @else {
+                      <div class="assoc-meta font-mono">
+                        <span class="external-tag">External Network Subject</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="assoc-actions" (click)="$event.stopPropagation()">
+                    <button
+                      mat-icon-button
+                      class="unlink-assoc-btn"
+                      (click)="removeAssociate(t, assocId, $event)"
+                      matTooltip="Unlink Associate"
+                    >
+                      <mat-icon>link_off</mat-icon>
+                    </button>
+                    <mat-icon class="arrow-icon">chevron_right</mat-icon>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </mat-card>
+
+        <!-- Intelligence Notes Card -->
+        <mat-card class="tactical-card notes-card">
+          <div class="card-header-bar">
+            <div class="header-label font-mono">
+              <mat-icon>assignment</mat-icon> INTELLIGENCE NOTES & LOGS
+            </div>
+            <span class="badge-count font-mono">{{ t.notes.length }}</span>
+          </div>
+
+          <!-- Add Note Form -->
+          <div class="add-note-box">
+            <mat-form-field appearance="outline" class="full-width note-input-field">
+              <mat-label>Add New Intelligence Entry</mat-label>
+              <textarea
+                matInput
+                rows="2"
+                [formControl]="newNoteControl"
+                placeholder="Log surveillance observation or briefing..."
+              ></textarea>
+            </mat-form-field>
+            <button
+              mat-flat-button
+              color="accent"
+              class="add-note-btn font-mono"
+              (click)="addCaseNote(t)"
+              [disabled]="newNoteControl.invalid || isAddingNote()"
+            >
+              @if (isAddingNote()) {
+                <mat-spinner diameter="16"></mat-spinner>
+              } @else {
+                <ng-container>
+                  <mat-icon>post_add</mat-icon>
+                  <span>Add Note</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+
+          <!-- Notes List -->
+          <div class="notes-list">
+            @if (t.notes.length === 0) {
+              <p class="empty-hint">No case notes currently logged for this subject.</p>
+            } @else {
+              @for (note of t.notes; track $index) {
+                <div class="note-item">
+                  <div class="note-header font-mono">
+                    <mat-icon>description</mat-icon>
+                    <span>INTEL NOTE #{{ t.notes.length - $index }}</span>
+                  </div>
+                  <p class="note-body">{{ note }}</p>
+                </div>
+              }
+            }
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  }
+</div>

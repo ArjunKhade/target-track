@@ -26,8 +26,23 @@
   margin: 0;
 }
 
-.compare-btn {
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.compare-btn,
+.register-target-btn {
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-edit-icon {
+  color: #06b6d4;
 }
 
 /* Toolbar Card */
@@ -302,30 +317,82 @@ body.theme-dark .target-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
+
+  .actions-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+
+    button[mat-icon-button] {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      min-height: 28px;
+      padding: 0;
+      line-height: 28px;
+
+      .mat-mdc-button-touch-target {
+        display: none;
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+      }
+    }
+  }
 }
 
 .target-card-identity {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .card-checkbox {
   margin-right: -4px;
+  margin-left: -2px;
+  flex-shrink: 0;
+
+  .mat-mdc-checkbox-touch-target {
+    display: none;
+  }
 }
 
 .target-card-names {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
   overflow: hidden;
 }
 
+.alias-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.alias-text {
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .full-name-text {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -402,7 +469,20 @@ body.theme-dark .target-card {
   .list-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
+  }
+  .header-actions-group {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .register-target-btn,
+  .compare-btn {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
   }
   .page-title {
     font-size: 1.35rem;
@@ -466,6 +546,41 @@ body.theme-dark .target-card {
   .filter-pill {
     font-size: 0.68rem;
     padding: 1px 6px;
+  }
+  .target-card-header {
+    gap: 4px;
+
+    .actions-btn-group {
+      gap: 0px;
+
+      button[mat-icon-button] {
+        width: 25px;
+        height: 25px;
+        min-width: 25px;
+        min-height: 25px;
+        line-height: 25px;
+
+        mat-icon {
+          font-size: 15px;
+          width: 15px;
+          height: 15px;
+          line-height: 15px;
+        }
+      }
+    }
+  }
+  .target-card-identity {
+    gap: 4px;
+  }
+  .card-checkbox {
+    margin-right: -6px;
+    margin-left: -4px;
+  }
+  .alias-text {
+    font-size: 0.82rem;
+  }
+  .full-name-text {
+    font-size: 0.7rem;
   }
 }
 
