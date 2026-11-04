@@ -894,6 +894,25 @@ html {
   .mat-mdc-icon-button {
     width: 40px !important;
     height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+
+    .mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      margin: 0 !important;
+    }
+    .mat-mdc-button-persistent-ripple,
+    .mdc-icon-button__ripple {
+      border-radius: 50% !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
   }
 }
 

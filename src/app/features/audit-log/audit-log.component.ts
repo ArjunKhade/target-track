@@ -50,7 +50,7 @@ import { AuthService } from '../../core/services/auth.service';
           <h1 class="page-title">Law Enforcement Audit & Security Trail</h1>
           <p class="page-subtitle">Immutable chronological register of intelligence access, dossier views, notes, and exports</p>
         </div>
-        <button mat-stroked-button (click)="exportLogCSV()">
+        <button mat-stroked-button class="export-btn" (click)="exportLogCSV()">
           <mat-icon>file_download</mat-icon> Export Audit Trail (.CSV)
         </button>
       </header>
@@ -224,6 +224,19 @@ import { AuthService } from '../../core/services/auth.service';
       gap: 16px;
       padding: 16px 16px 0;
     }
+    .search-field {
+      flex: 1;
+      width: 100%;
+    }
+    .action-select {
+      width: 240px;
+    }
+    .w-full {
+      width: 100%;
+    }
+    .export-btn {
+      white-space: nowrap;
+    }
     @media (max-width: 768px) {
       .audit-log-page {
         padding: 14px 10px;
@@ -231,19 +244,29 @@ import { AuthService } from '../../core/services/auth.service';
       }
       .page-header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .export-btn {
+        width: 100%;
       }
       .page-title {
         font-size: 1.35rem;
       }
       .filter-row {
         flex-direction: column;
-        gap: 10px;
-        padding: 12px;
+        gap: 12px;
+        padding: 14px 14px 4px;
+      }
+      .search-field {
+        width: 100% !important;
+        min-width: 100% !important;
+        flex: none !important;
       }
       .action-select {
-        width: 100%;
+        width: 100% !important;
+        min-width: 100% !important;
+        flex: none !important;
       }
       .table-card {
         overflow-x: auto;
@@ -252,15 +275,6 @@ import { AuthService } from '../../core/services/auth.service';
       table {
         min-width: 650px;
       }
-    }
-    .search-field {
-      flex: 1;
-    }
-    .action-select {
-      width: 240px;
-    }
-    .w-full {
-      width: 100%;
     }
     .time-cell {
       font-family: 'JetBrains Mono', monospace;

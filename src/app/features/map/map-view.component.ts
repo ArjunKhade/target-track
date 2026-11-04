@@ -117,7 +117,7 @@ interface DwellPoint extends LocationPoint {
   template: `
     <div class="map-view-shell" [class.is-fullscreen]="isFullscreen()">
       <!-- LEFT PANEL -->
-      <aside class="left-panel">
+      <aside class="left-panel" [class.mobile-hidden]="!showMobileDossier()">
         <!-- Target Selector & Quick Switcher -->
         <div class="target-selector-bar">
           <mat-form-field appearance="outline" class="w-full compact-field">
@@ -309,6 +309,17 @@ interface DwellPoint extends LocationPoint {
       <main class="map-panel">
         <!-- MAP TOOLBAR -->
         <header class="map-toolbar">
+          <!-- Mobile Dossier Toggle Button -->
+          <button
+            mat-button
+            class="mobile-dossier-toggle"
+            [class.active]="showMobileDossier()"
+            (click)="toggleMobileDossier()"
+          >
+            <mat-icon>{{ showMobileDossier() ? 'map' : 'badge' }}</mat-icon>
+            <span>{{ showMobileDossier() ? 'Full Map' : 'Dossier' }}</span>
+          </button>
+
           <!-- Base Layer Switcher -->
           <div class="toolbar-group">
             <span class="group-label">Map:</span>
@@ -560,14 +571,24 @@ interface DwellPoint extends LocationPoint {
       z-index: 10;
     }
     @media (max-width: 1024px) {
+      .map-view-shell {
+        flex-direction: column-reverse;
+      }
       .left-panel {
         width: 100%;
         min-width: 100%;
         max-width: 100%;
         height: 50%;
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+        transition: all 0.25s ease;
       }
-      .map-view-shell {
-        flex-direction: column-reverse;
+      .left-panel.mobile-hidden {
+        display: none !important;
+      }
+      .map-panel {
+        flex: 1;
+        width: 100%;
       }
     }
 
@@ -1105,10 +1126,159 @@ interface DwellPoint extends LocationPoint {
       color: var(--text-secondary);
       font-family: 'JetBrains Mono', monospace;
     }
+
+    .mobile-dossier-toggle {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      height: 30px;
+      line-height: 30px;
+      padding: 0 10px;
+      border-radius: 15px;
+      background: rgba(2, 132, 199, 0.15);
+      color: #0284c7;
+      border: 1px solid #0284c7;
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &.active {
+        background: #0284c7;
+        color: #fff;
+      }
+    }
+    body.theme-dark .mobile-dossier-toggle {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border-color: #38bdf8;
+      &.active {
+        background: #38bdf8;
+        color: #000;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .mobile-dossier-toggle {
+        display: inline-flex !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .map-toolbar {
+        padding: 0 8px;
+        gap: 6px;
+        height: 44px;
+      }
+      .toolbar-group {
+        gap: 2px;
+      }
+      .group-label {
+        display: none;
+      }
+      .toolbar-btn {
+        padding: 0 6px;
+        font-size: 0.7rem;
+        height: 26px;
+        line-height: 26px;
+      }
+      .warn-btn {
+        padding: 0 6px;
+        font-size: 0.7rem;
+      }
+      
+      /* Mobile Replay Bar Overhaul */
+      .replay-bar {
+        height: auto;
+        min-height: 52px;
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+      }
+      .replay-buttons {
+        order: 1;
+        gap: 4px;
+        button[mat-icon-button] {
+          width: 32px;
+          height: 32px;
+        }
+        button[mat-mini-fab] {
+          width: 36px;
+          height: 36px;
+        }
+      }
+      .speed-selector {
+        order: 2;
+        gap: 2px;
+        .speed-btn {
+          min-width: 26px;
+          padding: 0 4px;
+          font-size: 0.68rem;
+          height: 24px;
+          line-height: 24px;
+        }
+      }
+      .replay-readout {
+        order: 3;
+        margin-left: auto;
+        min-width: unset;
+        text-align: right;
+        .readout-city {
+          font-size: 0.78rem;
+          line-height: 1.1;
+        }
+        .readout-time {
+          font-size: 0.65rem;
+          line-height: 1.1;
+        }
+      }
+      .scrubber-wrapper {
+        order: 4;
+        width: 100%;
+        flex: 1 1 100%;
+        margin-top: -2px;
+      }
+      .map-legend {
+        top: 8px;
+        right: 8px;
+        padding: 6px 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .map-toolbar {
+        padding: 0 4px;
+        gap: 4px;
+      }
+      .replay-bar {
+        padding: 6px 8px;
+      }
+      .replay-readout {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
   `],
 })
 export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
+
+  readonly showMobileDossier = signal<boolean>(false);
+
+  toggleMobileDossier(): void {
+    this.showMobileDossier.update(v => !v);
+    setTimeout(() => {
+      this.map?.invalidateSize();
+    }, 250);
+  }
 
   private readonly targetService = inject(TargetService);
   private readonly mapService = inject(MapService);
