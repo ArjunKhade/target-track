@@ -878,7 +878,26 @@ body.theme-dark {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Global Mobile Responsive Helpers */
+/* ===== GLOBAL RESPONSIVE HELPERS ===== */
+
+/* Smooth scrolling on all pages */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Minimum touch target size for accessibility */
+@media (max-width: 1024px) {
+  button, a, [role="button"] {
+    min-height: 36px;
+  }
+  .mat-mdc-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* Dialogs */
 @media (max-width: 768px) {
   .mat-mdc-dialog-container {
     max-width: 95vw !important;
@@ -891,5 +910,53 @@ body.theme-dark {
     font-size: 1.8rem !important;
     padding: 6px 16px !important;
     letter-spacing: 0.15em !important;
+  }
+  /* Paginator wraps nicely */
+  .mat-mdc-paginator-container {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 8px 4px !important;
+  }
+  .mat-mdc-paginator-page-size {
+    margin: 0 !important;
+  }
+  /* Card headers wrap */
+  .mat-mdc-card-header {
+    flex-wrap: wrap;
+  }
+  /* Menu panels don't overflow */
+  .mat-mdc-menu-panel {
+    max-width: min(320px, 90vw) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .mat-mdc-dialog-container {
+    max-width: 98vw !important;
+    min-width: 95vw !important;
+  }
+  /* Tab bars scroll horizontally */
+  .mat-mdc-tab-list {
+    overflow-x: auto;
+  }
+  /* Smaller card padding */
+  .mat-mdc-card-content {
+    padding: 10px !important;
+  }
+  /* Full-width stroked buttons */
+  .mat-mdc-stroked-button {
+    min-width: unset;
+  }
+}
+
+@media (max-width: 360px) {
+  .mat-mdc-dialog-container {
+    max-width: 100vw !important;
+    min-width: 100vw !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .mat-mdc-paginator-range-label {
+    font-size: 0.72rem !important;
   }
 }

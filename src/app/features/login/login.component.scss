@@ -9,6 +9,8 @@
   background-color: #080c14;
   color: #f8fafc;
   font-family: 'Roboto', sans-serif;
+  /* Prevent scroll bounce on iOS */
+  -webkit-overflow-scrolling: touch;
 
   &.theme-light {
     background-color: #f1f5f9;
@@ -52,8 +54,8 @@
 
 .theme-toggle-btn {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 16px;
+  right: 16px;
   z-index: 10;
 }
 
@@ -83,6 +85,7 @@
 .logo-icon {
   width: 48px;
   height: 48px;
+  min-width: 48px;
   border-radius: 10px;
   background: rgba(56, 189, 248, 0.15);
   border: 1px solid rgba(56, 189, 248, 0.3);
@@ -103,6 +106,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 0;
+  word-break: break-word;
 }
 
 .app-subtitle {
@@ -126,12 +130,14 @@
   letter-spacing: 0.05em;
   margin-bottom: 24px;
   text-align: center;
+  flex-wrap: wrap;
 }
 
 .warning-icon {
   font-size: 16px;
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
 }
 
 .login-form {
@@ -224,6 +230,7 @@
   font-size: 0.75rem;
   color: #94a3b8;
   letter-spacing: 0.02em;
+  flex-wrap: wrap;
 
   .footer-icon {
     font-size: 16px;
@@ -240,7 +247,8 @@
   span {
     display: inline-flex;
     align-items: center;
-    line-height: 1.2;
+    line-height: 1.4;
+    text-align: center;
   }
 }
 
@@ -255,10 +263,166 @@
   color: #64748b;
 }
 
+.quick-access {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .quick-access-label {
   display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+
+  .quick-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #f59e0b;
+  }
+}
+
+.quick-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
 .quick-chip {
-  margin-right: 10px;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+
+/* ===== RESPONSIVE LOGIN ===== */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .login-container {
+    max-width: 420px;
+    padding: 20px;
+  }
+  .classified-text {
+    font-size: 6rem;
+  }
+}
+
+/* Large mobile */
+@media (max-width: 540px) {
+  .login-container {
+    padding: 16px;
+    max-width: 100%;
+  }
+  .login-card {
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .brand-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  .shield-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+  .app-title {
+    font-size: 1.3rem;
+  }
+  .app-subtitle {
+    font-size: 0.75rem;
+  }
+  .confidential-banner {
+    font-size: 0.65rem;
+    gap: 4px;
+    padding: 6px 10px;
+  }
+  .quick-chips {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .quick-chip {
+    font-size: 0.72rem;
+    padding: 5px 2px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 400px) {
+  .login-page {
+    align-items: flex-start;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .login-container {
+    padding: 12px;
+  }
+  .login-card {
+    padding: 12px;
+  }
+  .brand-header {
+    gap: 10px;
+  }
+  .app-title {
+    font-size: 1.15rem;
+  }
+  .quick-chips {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .quick-chip {
+    font-size: 0.8rem;
+    padding: 8px;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .confidential-banner {
+    gap: 4px;
+    .warning-icon:last-child {
+      display: none;
+    }
+  }
+  .theme-toggle-btn {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 320px) {
+  .app-title {
+    font-size: 1rem;
+  }
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+  .login-btn {
+    height: 40px;
+  }
 }

@@ -269,10 +269,36 @@ body.theme-dark .filter-pill.active {
 
 @media (max-width: 480px) {
   .target-list-page {
-    padding: 10px 8px;
+    padding: 10px 6px;
     gap: 10px;
   }
   .compare-btn {
     width: 100%;
+    font-size: 0.82rem;
+  }
+  .page-title {
+    font-size: 1.15rem;
+  }
+  .page-subtitle {
+    font-size: 0.8rem;
+  }
+  .toolbar-card {
+    padding: 10px;
+  }
+  .chip-group {
+    gap: 4px;
+  }
+  .filter-pill {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .target-list-page {
+    padding: 8px 4px;
+  }
+  .page-title {
+    font-size: 1rem;
   }
 }

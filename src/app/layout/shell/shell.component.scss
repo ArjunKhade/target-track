@@ -234,37 +234,82 @@ body.theme-dark .confidential-tag {
   color: #f87171;
 }
 
+/* ===== RESPONSIVE SHELL ===== */
+
+/* Tablet & below: hide clock and confidential tag */
 @media (max-width: 900px) {
   .confidential-tag, .live-clock {
     display: none;
   }
+  .app-toolbar {
+    gap: 8px;
+    padding: 0 12px;
+  }
 }
 
+/* Small tablets */
+@media (max-width: 768px) {
+  .sidenav-brand {
+    height: 56px;
+    padding: 0 12px;
+  }
+  .brand-title {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile */
 @media (max-width: 600px) {
   .app-toolbar {
     height: 56px;
-    padding: 0 8px;
-    gap: 4px;
+    padding: 0 6px;
+    gap: 2px;
   }
   .toolbar-title {
-    font-size: 1rem;
-    max-width: 140px;
+    font-size: 0.9rem;
+    max-width: 120px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
   }
   .user-display-name {
     display: none;
   }
   .user-btn {
     padding: 0 4px !important;
+    min-width: unset !important;
   }
   .page-viewport {
     height: calc(100vh - 56px) !important;
   }
   .app-sidenav {
     width: 260px;
-    max-width: 82vw;
+    max-width: 85vw;
+  }
+  .sidenav-footer {
+    padding: 12px;
+  }
+  .security-level {
+    font-size: 0.6rem;
+  }
+  .user-dropdown-icon {
+    display: none !important;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .app-toolbar {
+    padding: 0 4px;
+    gap: 0;
+  }
+  .toolbar-title {
+    max-width: 90px;
+    font-size: 0.82rem;
+  }
+  .app-sidenav {
+    max-width: 90vw;
   }
 }
 
