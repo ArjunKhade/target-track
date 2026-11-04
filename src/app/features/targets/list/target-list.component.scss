@@ -65,14 +65,33 @@
 
 .filter-chips-section {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: center;
-  padding-top: 10px;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--border-color);
 }
 
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-row-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+}
+
 .chip-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pills-row {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -80,10 +99,13 @@
 }
 
 .group-label {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
   color: var(--text-secondary);
   font-weight: 700;
+  min-width: 76px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
 
 .filter-pill {
@@ -220,8 +242,138 @@ body.theme-dark .filter-pill.active {
 }
 
 .actions-col {
-  width: 100px;
+  width: 104px;
+  min-width: 104px;
   text-align: right;
+  white-space: nowrap;
+}
+
+.actions-btn-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+
+  button[mat-icon-button] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Mobile Target Cards */
+.mobile-target-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.target-card {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #0284c7;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: var(--menu-hover);
+    border-color: rgba(2, 132, 199, 0.4);
+  }
+}
+
+body.theme-dark .target-card {
+  border-left-color: #38bdf8;
+}
+
+.target-card.critical-card {
+  border-left-color: #ef4444 !important;
+}
+
+.target-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.target-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-checkbox {
+  margin-right: -4px;
+}
+
+.target-card-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.full-name-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.target-card-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.target-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.meta-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 .table-paginator {
@@ -231,8 +383,21 @@ body.theme-dark .filter-pill.active {
 
 @media (max-width: 768px) {
   .target-list-page {
-    padding: 14px 10px;
-    gap: 14px;
+    padding: 12px 10px;
+    gap: 12px;
+  }
+  .table-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .mobile-target-cards {
+    padding: 0 !important;
+    gap: 10px;
+  }
+  .table-paginator {
+    display: none !important;
   }
   .list-header {
     flex-direction: column;
@@ -261,6 +426,16 @@ body.theme-dark .filter-pill.active {
   .filter-chips-section {
     gap: 10px;
     padding-top: 8px;
+  }
+  .filter-row {
+    gap: 10px;
+  }
+  .filter-row-divider {
+    display: none;
+  }
+  .group-label {
+    min-width: 64px;
+    font-size: 0.7rem;
   }
   .roster-table {
     min-width: 680px;

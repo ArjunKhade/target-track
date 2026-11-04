@@ -4,12 +4,15 @@ import {
   ChangeDetectorRef,
   Component,
   OnInit,
+  OnDestroy,
   ViewChild,
   inject,
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Subject, takeUntil } from 'rxjs';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -74,7 +77,7 @@ import { APP_CONSTANTS } from '../../../shared/constants/app.constants';
     TimeAgoPipe,
   ],
 })
-export class TargetListComponent implements OnInit, AfterViewInit {
+export class TargetListComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Injected services ──────────────────────────────────────────────────────
   private readonly targetService = inject(TargetService);
   private readonly router = inject(Router);
@@ -82,6 +85,13 @@ export class TargetListComponent implements OnInit, AfterViewInit {
   private readonly auditService = inject(AuditService);
   private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroy$ = new Subject<void>();
+
+  // ── Mobile state ───────────────────────────────────────────────────────────
+  readonly isMobile = signal<boolean>(false);
+  readonly pagedTargets = signal<Target[]>([]);
+  readonly mobileTargets = signal<Target[]>([]);
 
   // ── View children ──────────────────────────────────────────────────────────
   @ViewChild(MatSort) sort!: MatSort;
@@ -144,12 +154,34 @@ export class TargetListComponent implements OnInit, AfterViewInit {
   // ── Lifecycle ──────────────────────────────────────────────────────────────
   ngOnInit(): void {
     this._subscribeToTargets();
+
+    this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        this.isMobile.set(result.matches);
+        this.cdr.markForCheck();
+      });
   }
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
-    // Custom filter predicate already set in _subscribeToTargets
+    
+    // Connect dataSource stream to keep pagedTargets in sync with filter/sort/pagination
+    this.dataSource
+      .connect()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        this.pagedTargets.set([...data]);
+        this.mobileTargets.set(this.dataSource.filteredData);
+        this.cdr.markForCheck();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ── Public methods ─────────────────────────────────────────────────────────
@@ -165,6 +197,7 @@ export class TargetListComponent implements OnInit, AfterViewInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+    this.mobileTargets.set(this.dataSource.filteredData);
   }
 
   toggleCategory(cat: TargetCategory): void {
@@ -351,6 +384,7 @@ export class TargetListComponent implements OnInit, AfterViewInit {
 
     this.targetService.getTargets().subscribe(targets => {
       this.dataSource.data = targets;
+      this.mobileTargets.set(this.dataSource.filteredData);
       this.cdr.markForCheck();
     });
   }

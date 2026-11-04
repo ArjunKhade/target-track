@@ -15,7 +15,7 @@ import {
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, combineLatest } from 'rxjs';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -1519,20 +1519,42 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    // Load targets from TargetService
+    // Load targets and respond to route params / query params (targetId, targetIds)
     this.subs.add(
-      this.targetService.getTargets().subscribe(targets => {
+      combineLatest([
+        this.targetService.getTargets(),
+        this.route.queryParamMap,
+        this.route.paramMap,
+      ]).subscribe(([targets, queryParams, paramMap]) => {
         this.allTargets.set(targets);
+        if (targets.length === 0) return;
 
-        // Check route query param or url param
-        const queryId = this.route.snapshot.queryParamMap.get('targetId');
-        const paramId = this.route.snapshot.paramMap.get('id');
-        const targetId = paramId || queryId;
+        const targetIdsParam = queryParams.get('targetIds');
+        const queryId = queryParams.get('targetId');
+        const paramId = paramMap.get('id');
+        const singleTargetId = paramId || queryId;
 
-        if (targetId && targets.some(t => t.id === targetId)) {
-          this.activeTargetId.set(targetId);
-          this.selectedTargetIds.set([targetId]);
-        } else if (targets.length > 0) {
+        // Multiple target comparison mode via query param (e.g. ?targetIds=TGT-001,TGT-002)
+        if (targetIdsParam) {
+          const parsedIds = targetIdsParam
+            .split(',')
+            .map(id => id.trim())
+            .filter(id => targets.some(t => t.id === id));
+
+          if (parsedIds.length > 0) {
+            const cappedIds = parsedIds.slice(0, APP_CONSTANTS.MAX_MULTI_TARGET_COMPARE);
+            this.selectedTargetIds.set(cappedIds);
+            this.activeTargetId.set(cappedIds[0]);
+            this.renderAllLayers();
+            return;
+          }
+        }
+
+        // Single target tracking mode
+        if (singleTargetId && targets.some(t => t.id === singleTargetId)) {
+          this.activeTargetId.set(singleTargetId);
+          this.selectedTargetIds.set([singleTargetId]);
+        } else if (targets.length > 0 && !targets.some(t => t.id === this.activeTargetId())) {
           this.activeTargetId.set(targets[0].id);
           this.selectedTargetIds.set([targets[0].id]);
         }
