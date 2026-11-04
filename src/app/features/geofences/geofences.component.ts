@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   computed,
   inject,
@@ -19,6 +20,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Subject, takeUntil } from 'rxjs';
 
 import { GeofenceZone, GeofenceShape } from '../../core/models/geofence.model';
 import { GeofenceService } from '../../core/services/geofence.service';
@@ -47,6 +51,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatTooltipModule,
   ],
   template: `
     <div class="geofence-page">
@@ -62,91 +67,156 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         }
       </header>
 
-      <!-- Zones Table -->
+      <!-- Zones Table / Cards -->
       <mat-card class="table-card">
-        <table mat-table [dataSource]="zones()" class="w-full">
-          <!-- Color & Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Zone Identifier</th>
-            <td mat-cell *matCellDef="let z">
-              <div class="zone-name-cell">
-                <span class="color-swatch" [style.background-color]="z.color"></span>
-                <div>
-                  <div class="zone-name">{{ z.name }}</div>
-                  <div class="zone-desc">{{ z.description || 'Surveillance zone' }}</div>
+        @if (zones().length === 0) {
+          <div class="empty-state">No geofence perimeters deployed.</div>
+        } @else {
+          <!-- Desktop Table View -->
+          @if (!isMobile()) {
+            <div class="table-scroll">
+              <table mat-table [dataSource]="zones()" class="w-full">
+                <!-- Color & Name Column -->
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>Zone Identifier</th>
+                  <td mat-cell *matCellDef="let z">
+                    <div class="zone-name-cell">
+                      <span class="color-swatch" [style.background-color]="z.color"></span>
+                      <div>
+                        <div class="zone-name">{{ z.name }}</div>
+                        <div class="zone-desc">{{ z.description || 'Surveillance zone' }}</div>
+                      </div>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Geometry / Shape Column -->
+                <ng-container matColumnDef="shape">
+                  <th mat-header-cell *matHeaderCellDef>Geometry</th>
+                  <td mat-cell *matCellDef="let z">
+                    <span class="shape-badge">
+                      <mat-icon>{{ z.shape === 'circle' ? 'radio_button_checked' : 'polyline' }}</mat-icon>
+                      {{ z.shape | uppercase }}
+                    </span>
+                    @if (z.shape === 'circle' && z.radius) {
+                      <span class="dim-info">{{ (z.radius / 1000) | number:'1.1-1' }} km radius</span>
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Violations Column -->
+                <ng-container matColumnDef="violations">
+                  <th mat-header-cell *matHeaderCellDef>Breaches Detected</th>
+                  <td mat-cell *matCellDef="let z">
+                    @if (getViolationCount(z) > 0) {
+                      <span class="breach-pill warn">
+                        <mat-icon>warning</mat-icon> {{ getViolationCount(z) }} Breaches
+                      </span>
+                    } @else {
+                      <span class="breach-pill safe">
+                        <mat-icon>shield</mat-icon> 0 Breaches
+                      </span>
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Active Status</th>
+                  <td mat-cell *matCellDef="let z">
+                    <mat-slide-toggle
+                      [checked]="z.active"
+                      [disabled]="!authService.isAdmin()"
+                      (change)="toggleZone(z)"
+                      color="primary"
+                    >
+                      {{ z.active ? 'Armed' : 'Disarmed' }}
+                    </mat-slide-toggle>
+                  </td>
+                </ng-container>
+
+                <!-- Created Column -->
+                <ng-container matColumnDef="created">
+                  <th mat-header-cell *matHeaderCellDef>Created</th>
+                  <td mat-cell *matCellDef="let z">
+                    {{ z.createdAt | date:'mediumDate' }}
+                  </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let z">
+                    @if (authService.isAdmin()) {
+                      <button mat-icon-button color="warn" (click)="deleteZone(z)" matTooltip="Delete zone">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                <tr mat-row *matRowDef="let row; columns: columns"></tr>
+              </table>
+            </div>
+          }
+
+          <!-- Mobile Card View -->
+          @if (isMobile()) {
+            <div class="mobile-geofence-cards">
+              @for (z of zones(); track z.id) {
+                <div class="geofence-card" [style.border-left-color]="z.color">
+                  <div class="geofence-card-header">
+                    <div class="zone-name-cell">
+                      <span class="color-swatch" [style.background-color]="z.color"></span>
+                      <div>
+                        <div class="zone-name">{{ z.name }}</div>
+                        <div class="zone-desc">{{ z.description || 'Surveillance zone' }}</div>
+                      </div>
+                    </div>
+                    @if (authService.isAdmin()) {
+                      <button mat-icon-button color="warn" class="delete-btn" (click)="deleteZone(z)" matTooltip="Delete zone">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="geofence-card-meta">
+                    <span class="shape-badge">
+                      <mat-icon>{{ z.shape === 'circle' ? 'radio_button_checked' : 'polyline' }}</mat-icon>
+                      {{ z.shape | uppercase }}
+                      @if (z.shape === 'circle' && z.radius) {
+                        <span>({{ (z.radius / 1000) | number:'1.1-1' }} km)</span>
+                      }
+                    </span>
+
+                    @if (getViolationCount(z) > 0) {
+                      <span class="breach-pill warn">
+                        <mat-icon>warning</mat-icon> {{ getViolationCount(z) }} Breaches
+                      </span>
+                    } @else {
+                      <span class="breach-pill safe">
+                        <mat-icon>shield</mat-icon> 0 Breaches
+                      </span>
+                    }
+                  </div>
+
+                  <div class="geofence-card-footer">
+                    <span class="created-date">Created: {{ z.createdAt | date:'mediumDate' }}</span>
+                    <mat-slide-toggle
+                      [checked]="z.active"
+                      [disabled]="!authService.isAdmin()"
+                      (change)="toggleZone(z)"
+                      color="primary"
+                    >
+                      {{ z.active ? 'Armed' : 'Disarmed' }}
+                    </mat-slide-toggle>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Geometry / Shape Column -->
-          <ng-container matColumnDef="shape">
-            <th mat-header-cell *matHeaderCellDef>Geometry</th>
-            <td mat-cell *matCellDef="let z">
-              <span class="shape-badge">
-                <mat-icon>{{ z.shape === 'circle' ? 'radio_button_checked' : 'polyline' }}</mat-icon>
-                {{ z.shape | uppercase }}
-              </span>
-              @if (z.shape === 'circle' && z.radius) {
-                <span class="dim-info">{{ (z.radius / 1000) | number:'1.1-1' }} km radius</span>
               }
-            </td>
-          </ng-container>
-
-          <!-- Violations Column -->
-          <ng-container matColumnDef="violations">
-            <th mat-header-cell *matHeaderCellDef>Breaches Detected</th>
-            <td mat-cell *matCellDef="let z">
-              @if (getViolationCount(z) > 0) {
-                <span class="breach-pill warn">
-                  <mat-icon>warning</mat-icon> {{ getViolationCount(z) }} Breaches
-                </span>
-              } @else {
-                <span class="breach-pill safe">
-                  <mat-icon>shield</mat-icon> 0 Breaches
-                </span>
-              }
-            </td>
-          </ng-container>
-
-          <!-- Status Column -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Active Status</th>
-            <td mat-cell *matCellDef="let z">
-              <mat-slide-toggle
-                [checked]="z.active"
-                [disabled]="!authService.isAdmin()"
-                (change)="toggleZone(z)"
-                color="primary"
-              >
-                {{ z.active ? 'Armed' : 'Disarmed' }}
-              </mat-slide-toggle>
-            </td>
-          </ng-container>
-
-          <!-- Created Column -->
-          <ng-container matColumnDef="created">
-            <th mat-header-cell *matHeaderCellDef>Created</th>
-            <td mat-cell *matCellDef="let z">
-              {{ z.createdAt | date:'mediumDate' }}
-            </td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let z">
-              @if (authService.isAdmin()) {
-                <button mat-icon-button color="warn" (click)="deleteZone(z)" matTooltip="Delete zone">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              }
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let row; columns: columns"></tr>
-        </table>
+            </div>
+          }
+        }
       </mat-card>
 
       <!-- Zone Creation Form Modal (Inline when open) -->
@@ -350,17 +420,75 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         min-width: 600px;
       }
     }
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: #94a3b8;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Mobile Geofence Cards */
+    .mobile-geofence-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+    }
+    .geofence-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid #38bdf8;
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .geofence-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .delete-btn {
+      margin-top: -6px;
+      margin-right: -6px;
+    }
+    .geofence-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .geofence-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .created-date {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
   `],
 })
-export class GeofencesComponent implements OnInit {
+export class GeofencesComponent implements OnInit, OnDestroy {
   private readonly geofenceService = inject(GeofenceService);
   private readonly targetService = inject(TargetService);
   readonly authService = inject(AuthService);
   private readonly auditService = inject(AuditService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroy$ = new Subject<void>();
 
   readonly zones = this.geofenceService.zones;
+  readonly isMobile = signal<boolean>(false);
   readonly targets = signal<Target[]>([]);
   readonly columns = ['name', 'shape', 'violations', 'status', 'created', 'actions'];
 
@@ -376,9 +504,21 @@ export class GeofencesComponent implements OnInit {
   formRadius = 5000;
 
   ngOnInit(): void {
+    this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        this.isMobile.set(result.matches);
+      });
+
     this.targetService.getTargets().subscribe(list => {
       this.targets.set(list);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   getViolationCount(zone: GeofenceZone): number {

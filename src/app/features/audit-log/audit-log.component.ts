@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   computed,
   inject,
@@ -17,6 +18,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Subject, takeUntil } from 'rxjs';
 
 import { AuditEntry, AuditAction } from '../../core/models/audit.model';
 import { AuditService } from '../../core/services/audit.service';
@@ -73,69 +76,115 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
       </mat-card>
 
-      <!-- Audit Entries Table -->
+      <!-- Audit Entries Table / Cards -->
       <mat-card class="table-card">
-        <table mat-table [dataSource]="filteredLog()" class="w-full">
-          <!-- Timestamp Column -->
-          <ng-container matColumnDef="timestamp">
-            <th mat-header-cell *matHeaderCellDef>Timestamp</th>
-            <td mat-cell *matCellDef="let entry" class="time-cell">
-              <div class="time-main">{{ entry.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</div>
-            </td>
-          </ng-container>
+        @if (filteredLog().length === 0) {
+          <div class="empty-state">No audit entries match the current filter.</div>
+        } @else {
+          <!-- Desktop Table View -->
+          @if (!isMobile()) {
+            <div class="table-scroll">
+              <table mat-table [dataSource]="filteredLog()" class="w-full">
+                <!-- Timestamp Column -->
+                <ng-container matColumnDef="timestamp">
+                  <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+                  <td mat-cell *matCellDef="let entry" class="time-cell">
+                    <div class="time-main">{{ entry.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</div>
+                  </td>
+                </ng-container>
 
-          <!-- User Column -->
-          <ng-container matColumnDef="user">
-            <th mat-header-cell *matHeaderCellDef>Operative</th>
-            <td mat-cell *matCellDef="let entry">
-              <span class="user-chip">
-                <mat-icon>person</mat-icon> {{ entry.username }}
-              </span>
-            </td>
-          </ng-container>
+                <!-- User Column -->
+                <ng-container matColumnDef="user">
+                  <th mat-header-cell *matHeaderCellDef>Operative</th>
+                  <td mat-cell *matCellDef="let entry">
+                    <span class="user-chip">
+                      <mat-icon>person</mat-icon> {{ entry.username }}
+                    </span>
+                  </td>
+                </ng-container>
 
-          <!-- Action Column -->
-          <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef>Action Code</th>
-            <td mat-cell *matCellDef="let entry">
-              <span class="action-pill" [class]="'action-' + entry.action.toLowerCase()">
-                <mat-icon>{{ getActionIcon(entry.action) }}</mat-icon>
-                {{ entry.action }}
-              </span>
-            </td>
-          </ng-container>
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef>Action Code</th>
+                  <td mat-cell *matCellDef="let entry">
+                    <span class="action-pill" [class]="'action-' + entry.action.toLowerCase()">
+                      <mat-icon>{{ getActionIcon(entry.action) }}</mat-icon>
+                      {{ entry.action }}
+                    </span>
+                  </td>
+                </ng-container>
 
-          <!-- Target Column -->
-          <ng-container matColumnDef="target">
-            <th mat-header-cell *matHeaderCellDef>Subject Target</th>
-            <td mat-cell *matCellDef="let entry">
-              @if (entry.targetAlias) {
-                <span class="target-tag">{{ entry.targetAlias }}</span>
-              } @else {
-                <span class="text-muted">—</span>
+                <!-- Target Column -->
+                <ng-container matColumnDef="target">
+                  <th mat-header-cell *matHeaderCellDef>Subject Target</th>
+                  <td mat-cell *matCellDef="let entry">
+                    @if (entry.targetAlias) {
+                      <span class="target-tag">{{ entry.targetAlias }}</span>
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Details Column -->
+                <ng-container matColumnDef="details">
+                  <th mat-header-cell *matHeaderCellDef>Audit Description</th>
+                  <td mat-cell *matCellDef="let entry" class="details-cell">
+                    {{ entry.details }}
+                  </td>
+                </ng-container>
+
+                <!-- IP Address Column -->
+                <ng-container matColumnDef="ip">
+                  <th mat-header-cell *matHeaderCellDef>Source IP</th>
+                  <td mat-cell *matCellDef="let entry" class="ip-cell">
+                    <code>{{ entry.ipAddress }}</code>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                <tr mat-row *matRowDef="let row; columns: columns"></tr>
+              </table>
+            </div>
+          }
+
+          <!-- Mobile Card View -->
+          @if (isMobile()) {
+            <div class="mobile-audit-cards">
+              @for (entry of filteredLog(); track entry.id) {
+                <div class="audit-card">
+                  <div class="audit-card-top">
+                    <span class="action-pill" [class]="'action-' + entry.action.toLowerCase()">
+                      <mat-icon>{{ getActionIcon(entry.action) }}</mat-icon>
+                      {{ entry.action }}
+                    </span>
+                    <span class="time-main">{{ entry.timestamp | date:'MMM d, HH:mm:ss' }}</span>
+                  </div>
+
+                  <div class="audit-card-meta">
+                    <span class="user-chip">
+                      <mat-icon>person</mat-icon> {{ entry.username }}
+                    </span>
+                    @if (entry.targetAlias) {
+                      <span class="target-tag">{{ entry.targetAlias }}</span>
+                    }
+                  </div>
+
+                  <div class="audit-card-desc">
+                    {{ entry.details }}
+                  </div>
+
+                  <div class="audit-card-footer">
+                    <span class="ip-badge">
+                      <mat-icon class="ip-icon">lan</mat-icon>
+                      <code>{{ entry.ipAddress }}</code>
+                    </span>
+                  </div>
+                </div>
               }
-            </td>
-          </ng-container>
-
-          <!-- Details Column -->
-          <ng-container matColumnDef="details">
-            <th mat-header-cell *matHeaderCellDef>Audit Description</th>
-            <td mat-cell *matCellDef="let entry" class="details-cell">
-              {{ entry.details }}
-            </td>
-          </ng-container>
-
-          <!-- IP Address Column -->
-          <ng-container matColumnDef="ip">
-            <th mat-header-cell *matHeaderCellDef>Source IP</th>
-            <td mat-cell *matCellDef="let entry" class="ip-cell">
-              <code>{{ entry.ipAddress }}</code>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let row; columns: columns"></tr>
-        </table>
+            </div>
+          }
+        }
       </mat-card>
     </div>
   `,
@@ -278,12 +327,81 @@ import { AuthService } from '../../core/services/auth.service';
       font-size: 0.78rem;
       color: #94a3b8;
     }
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: #94a3b8;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Mobile Audit Cards */
+    .mobile-audit-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+    }
+    .audit-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .audit-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .audit-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .audit-card-desc {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--text-primary);
+    }
+    .audit-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ip-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      code {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    }
+    .ip-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: #64748b;
+    }
   `],
 })
-export class AuditLogComponent implements OnInit {
+export class AuditLogComponent implements OnInit, OnDestroy {
   private readonly auditService = inject(AuditService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroy$ = new Subject<void>();
   readonly authService = inject(AuthService);
 
+  readonly isMobile = signal<boolean>(false);
   readonly rawLog = this.auditService.log;
   readonly columns = ['timestamp', 'user', 'action', 'target', 'details', 'ip'];
 
@@ -308,7 +426,17 @@ export class AuditLogComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Initial load
+    this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        this.isMobile.set(result.matches);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   readonly filteredLog = computed(() => {

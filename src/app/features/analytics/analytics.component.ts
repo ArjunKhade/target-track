@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   signal,
   computed,
   inject,
@@ -12,9 +13,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
+import { Subject, takeUntil } from 'rxjs';
 
 import { TargetService } from '../../core/services/target.service';
 import { Target } from '../../core/models/target.model';
@@ -44,6 +48,7 @@ interface IntersectSummary {
     MatChipsModule,
     MatButtonModule,
     MatTableModule,
+    MatDividerModule,
     NgxEchartsDirective,
   ],
   template: `
@@ -108,62 +113,83 @@ interface IntersectSummary {
             @if (intersections().length === 0) {
               <div class="empty-state">No convergence points identified across active targets.</div>
             } @else {
-              <table mat-table [dataSource]="intersections()" class="w-full">
-                <!-- Target 1 Column -->
-                <ng-container matColumnDef="targets">
-                  <th mat-header-cell *matHeaderCellDef>Target Convergence</th>
-                  <td mat-cell *matCellDef="let row">
-                    <span class="tag alias-1" (click)="goToMap(row.target1Id)">{{ row.target1 }}</span>
-                    <mat-icon class="intersect-icon">swap_horiz</mat-icon>
-                    <span class="tag alias-2" (click)="goToMap(row.target2Id)">{{ row.target2 }}</span>
-                  </td>
-                </ng-container>
+              <!-- Desktop Table -->
+              @if (!isMobile()) {
+                <div class="table-scroll">
+                  <table mat-table [dataSource]="intersections()" class="w-full">
+                    <ng-container matColumnDef="targets">
+                      <th mat-header-cell *matHeaderCellDef>Target Convergence</th>
+                      <td mat-cell *matCellDef="let row">
+                        <span class="tag alias-1" (click)="goToMap(row.target1Id)">{{ row.target1 }}</span>
+                        <mat-icon class="intersect-icon">swap_horiz</mat-icon>
+                        <span class="tag alias-2" (click)="goToMap(row.target2Id)">{{ row.target2 }}</span>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="city">
+                      <th mat-header-cell *matHeaderCellDef>City / Hub</th>
+                      <td mat-cell *matCellDef="let row"><strong>{{ row.city }}</strong></td>
+                    </ng-container>
+                    <ng-container matColumnDef="proximity">
+                      <th mat-header-cell *matHeaderCellDef>Spatial Proximity</th>
+                      <td mat-cell *matCellDef="let row">
+                        <span class="badge dist">{{ row.distanceKm | number:'1.1-1' }} km apart</span>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="temporal">
+                      <th mat-header-cell *matHeaderCellDef>Time Delta</th>
+                      <td mat-cell *matCellDef="let row">
+                        <span class="badge time">{{ row.timeDiffHours | number:'1.1-1' }}h apart</span>
+                      </td>
+                    </ng-container>
+                    <ng-container matColumnDef="time">
+                      <th mat-header-cell *matHeaderCellDef>Sighting Window</th>
+                      <td mat-cell *matCellDef="let row">{{ row.time | date:'medium' }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                      <th mat-header-cell *matHeaderCellDef>Action</th>
+                      <td mat-cell *matCellDef="let row">
+                        <button mat-stroked-button color="primary" (click)="goToMap(row.target1Id)">
+                          <mat-icon>map</mat-icon> View on Map
+                        </button>
+                      </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+                  </table>
+                </div>
+              }
 
-                <!-- City Column -->
-                <ng-container matColumnDef="city">
-                  <th mat-header-cell *matHeaderCellDef>City / Hub</th>
-                  <td mat-cell *matCellDef="let row">
-                    <strong>{{ row.city }}</strong>
-                  </td>
-                </ng-container>
-
-                <!-- Proximity Column -->
-                <ng-container matColumnDef="proximity">
-                  <th mat-header-cell *matHeaderCellDef>Spatial Proximity</th>
-                  <td mat-cell *matCellDef="let row">
-                    <span class="badge dist">{{ row.distanceKm | number:'1.1-1' }} km apart</span>
-                  </td>
-                </ng-container>
-
-                <!-- Temporal Column -->
-                <ng-container matColumnDef="temporal">
-                  <th mat-header-cell *matHeaderCellDef>Time Delta</th>
-                  <td mat-cell *matCellDef="let row">
-                    <span class="badge time">{{ row.timeDiffHours | number:'1.1-1' }}h apart</span>
-                  </td>
-                </ng-container>
-
-                <!-- Timestamp Column -->
-                <ng-container matColumnDef="time">
-                  <th mat-header-cell *matHeaderCellDef>Sighting Window</th>
-                  <td mat-cell *matCellDef="let row">
-                    {{ row.time | date:'medium' }}
-                  </td>
-                </ng-container>
-
-                <!-- Action Column -->
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef>Action</th>
-                  <td mat-cell *matCellDef="let row">
-                    <button mat-stroked-button color="primary" (click)="goToMap(row.target1Id)">
-                      <mat-icon>map</mat-icon> View on Map
-                    </button>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="columns"></tr>
-                <tr mat-row *matRowDef="let row; columns: columns"></tr>
-              </table>
+              <!-- Mobile Cards -->
+              @if (isMobile()) {
+                <div class="mobile-cards">
+                  @for (row of intersections(); track row.target1Id + row.target2Id + row.time) {
+                    <div class="convergence-card">
+                      <div class="convergence-targets">
+                        <span class="tag alias-1" (click)="goToMap(row.target1Id)">{{ row.target1 }}</span>
+                        <mat-icon class="intersect-icon">swap_horiz</mat-icon>
+                        <span class="tag alias-2" (click)="goToMap(row.target2Id)">{{ row.target2 }}</span>
+                      </div>
+                      <div class="convergence-meta">
+                        <div class="meta-row">
+                          <mat-icon class="meta-icon">location_on</mat-icon>
+                          <strong>{{ row.city }}</strong>
+                        </div>
+                        <div class="meta-row">
+                          <span class="badge dist">{{ row.distanceKm | number:'1.1-1' }} km apart</span>
+                          <span class="badge time">{{ row.timeDiffHours | number:'1.1-1' }}h delta</span>
+                        </div>
+                        <div class="meta-row time-row">
+                          <mat-icon class="meta-icon">schedule</mat-icon>
+                          <span class="time-text">{{ row.time | date:'medium' }}</span>
+                        </div>
+                      </div>
+                      <button mat-stroked-button color="primary" class="map-btn" (click)="goToMap(row.target1Id)">
+                        <mat-icon>map</mat-icon> View on Map
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
             }
           </mat-card-content>
         </mat-card>
@@ -284,19 +310,95 @@ interface IntersectSummary {
       text-align: center;
       color: #94a3b8;
     }
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Mobile Convergence Cards */
+    .mobile-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 8px;
+    }
+    .convergence-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+      &:hover {
+        border-color: #0284c7;
+      }
+    }
+    .convergence-targets {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .convergence-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      flex-wrap: wrap;
+    }
+    .meta-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #94a3b8;
+    }
+    .time-row {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+    .time-text {
+      color: var(--text-secondary);
+    }
+    .map-btn {
+      width: 100%;
+      height: 36px;
+      margin-top: 4px;
+    }
   `],
 })
-export class AnalyticsComponent implements OnInit {
+export class AnalyticsComponent implements OnInit, OnDestroy {
   private readonly targetService = inject(TargetService);
   private readonly router = inject(Router);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroy$ = new Subject<void>();
 
   readonly targets = signal<Target[]>([]);
+  readonly isMobile = signal<boolean>(false);
   readonly columns = ['targets', 'city', 'proximity', 'temporal', 'time', 'actions'];
 
   ngOnInit(): void {
+    this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        this.isMobile.set(result.matches);
+      });
+
     this.targetService.getTargets().subscribe(list => {
       this.targets.set(list);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Association graph option
