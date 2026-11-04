@@ -105,6 +105,9 @@
             <mat-icon class="quick-icon">bolt</mat-icon>
             Quick Demo Access
           </p>
+          <p class="quick-access-note">
+            Select user from below then click <strong>AUTHENTICATE</strong> to login
+          </p>
           <div class="quick-chips">
             @for (user of quickUsers; track user.username) {
             <button mat-stroked-button class="quick-chip" type="button" (click)="fillQuickLogin(user.username)"
