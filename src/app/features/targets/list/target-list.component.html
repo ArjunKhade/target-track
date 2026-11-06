@@ -42,8 +42,12 @@
       <mat-menu #colMenu="matMenu">
         @for (col of allColumns; track col) {
         @if (col !== 'select' && col !== 'actions') {
-        <button mat-menu-item (click)="toggleColumn(col)">
-          <mat-checkbox [checked]="isColumnVisible(col)" (click)="$event.stopPropagation()">
+        <button mat-menu-item>
+          <mat-checkbox
+            [checked]="isColumnVisible(col)"
+            (click)="$event.stopPropagation()"
+            (change)="toggleColumn(col)"
+          >
             {{ columnLabels[col] || col }}
           </mat-checkbox>
         </button>
